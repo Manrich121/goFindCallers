@@ -1,0 +1,3 @@
+[
+{ "button": "button1", "count": 2,"command": "find_in_files_goto", "context": [{"key": "selector", "operator": "equal", "operand": "text.find-in-files" }]}
+]
