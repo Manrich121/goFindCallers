@@ -87,7 +87,7 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 				if err != nil {
 					return err
 				}
-				v.toFind = checkExprSel(filenode, v.orginalFind)
+				v.toFind, _ = checkExprSel(filenode, v.orginalFind)
 				//Walk and find function
 				ast.Walk(v, filenode)
 			}
@@ -96,26 +96,31 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 	return nil
 }
 
-func getFunctionString(file *ast.File, toFind string) string {
+func getFunctionString(file *ast.File, toFind string) (string, bool) {
 
 	if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
-		return file.Name.Name + "." + toFind
+		return (file.Name.Name + "." + toFind), false
 	}
-	return toFind
+
+	return checkExprSel(file, toFind)
 }
 
-func checkExprSel(file *ast.File, toFind string) string {
+func checkExprSel(file *ast.File, toFind string) (string, bool) {
 	exprSel := strings.Split(toFind, ".")
 	if len(exprSel) > 1 {
 		for i := range file.Imports {
 			curImport := file.Imports[i]
 			if curImport.Name != nil && strings.EqualFold(exprSel[0], strings.Trim(curImport.Path.Value, "\"")) {
-				return curImport.Name.String() + "." + exprSel[1]
+				return (curImport.Name.String() + "." + exprSel[1]), false
+			} else {
+				if curImport.Name != nil && strings.EqualFold(exprSel[0], curImport.Name.String()) {
+					return (strings.Trim(curImport.Path.Value, "\"") + "." + exprSel[1]), true
+				}
 			}
 			// f.Println(file.Imports[i].Name, file.Imports[i].Path.Value)
 		}
 	}
-	return toFind
+	return toFind, false
 }
 
 func main() {
@@ -146,7 +151,11 @@ func main() {
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
-	visitor.toFind = getFunctionString(filenode, splitInput[0])
+	tf, change := getFunctionString(filenode, splitInput[0])
+	visitor.toFind = tf
+	if change {
+		visitor.orginalFind = visitor.toFind
+	}
 
 	// Find, open and parse Gopath
 	gopath := os.Getenv("GOPATH")
