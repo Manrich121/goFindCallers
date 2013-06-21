@@ -27,8 +27,8 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		if len(self.view.sel()) == 1 and self.view.sel()[0].size() > 0:
 			callback(self.view.substr(self.view.sel()[0]))
 		else:
-			sublime.status_message('Warnaing! No selection made')
-			# self.view.window().show_input_panel('Enter word to find:', '', callback, None, None)
+			# sublime.status_message('Warnaing! No selection made')
+			self.view.window().show_input_panel('Enter word to find:', '', callback, None, None)
 
 
 	def _doFind(self, wordToFind):
@@ -59,6 +59,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			filelines = linecache.getlines(fileLoc)
 			linecount = len(filelines)
 
+			linecache.clearcache()
 			# Determine the range of the lines across all regions
 			lines = []
 			prevNum = 0
@@ -122,15 +123,10 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				colon = colon, text = line, sp = spacer)
 
 
-	def _lineCount(self):
-		return self.view.rowcol(self.view.size())[0]
-
-
 class ShowResultsCommand(sublime_plugin.TextCommand):
 	def run(self, edit, toAppend, toHighlight):
 		self.view.erase(edit, sublime.Region(0, self.view.size()))
 		self.view.insert(edit, self.view.size(), '\n'.join(toAppend))
 
 		regions = self.view.find_all(toHighlight)
-		self.view.add_regions('find_results', regions, 'found', '', 
-				sublime.DRAW_OUTLINED)
+		self.view.add_regions('find_results', regions, 'found', '', sublime.DRAW_OUTLINED)

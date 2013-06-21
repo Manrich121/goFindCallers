@@ -154,7 +154,7 @@ func main() {
 	tf, change := getFunctionString(filenode, splitInput[0])
 	visitor.toFind = tf
 	if change {
-		visitor.orginalFind = visitor.toFind
+		visitor.orginalFind = tf
 	}
 
 	// Find, open and parse Gopath
@@ -182,7 +182,7 @@ func main() {
 		fmt.Print(OutputString)
 	} else {
 		// Print flag NotFound to indicate that the function was not found
-		fmt.Println("NotFound")
+		fmt.Printf("NotFound")
 	}
 
 }
