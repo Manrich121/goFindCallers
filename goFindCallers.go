@@ -17,8 +17,9 @@ import (
 // toFind is the function name to be found
 // poslist is a slice of type token.Pos used to store Positions within files
 type FuncVisitor struct {
-	toFind  string
-	poslist []token.Pos
+	orginalFind string
+	toFind      string
+	poslist     []token.Pos
 }
 
 // Visit interface used by as.Walk to traverse the AST
@@ -65,7 +66,7 @@ func (v *FuncVisitor) findAndMatch(fun ast.Node, toFind string) bool {
 // parseDirectory recursively walk through the path and parses each file using parser.ParseFile
 // as well as calls findAndMatch
 // It takes fset, the starting filepath and an ast.Vistor
-func parseDirectory(fset *token.FileSet, path string, v ast.Visitor) (first error) {
+func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first error) {
 	fd, err := os.Open(path)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func parseDirectory(fset *token.FileSet, path string, v ast.Visitor) (first erro
 	for _, f := range fileList {
 		filepath := filepath.Join(path, f.Name())
 		if f.IsDir() {
-			parseDirectory(fset, filepath, v)
+			v.parseDirectory(fset, filepath)
 		} else {
 			// Only parse .go-files
 			if strings.HasSuffix(f.Name(), ".go") {
@@ -86,6 +87,7 @@ func parseDirectory(fset *token.FileSet, path string, v ast.Visitor) (first erro
 				if err != nil {
 					return err
 				}
+				v.toFind = checkExprSel(filenode, v.orginalFind)
 				//Walk and find function
 				ast.Walk(v, filenode)
 			}
@@ -98,6 +100,20 @@ func getFunctionString(file *ast.File, toFind string) string {
 
 	if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 		return file.Name.Name + "." + toFind
+	}
+	return toFind
+}
+
+func checkExprSel(file *ast.File, toFind string) string {
+	exprSel := strings.Split(toFind, ".")
+	if len(exprSel) > 1 {
+		for i := range file.Imports {
+			curImport := file.Imports[i]
+			if curImport.Name != nil && strings.EqualFold(exprSel[0], strings.Trim(curImport.Path.Value, "\"")) {
+				return curImport.Name.String() + "." + exprSel[1]
+			}
+			// f.Println(file.Imports[i].Name, file.Imports[i].Path.Value)
+		}
 	}
 	return toFind
 }
@@ -125,6 +141,8 @@ func main() {
 		panic(err)
 	}
 
+	visitor.orginalFind = splitInput[0]
+	visitor.toFind = splitInput[0]
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
@@ -132,7 +150,7 @@ func main() {
 
 	// Find, open and parse Gopath
 	gopath := os.Getenv("GOPATH")
-	err = parseDirectory(fset, gopath, visitor)
+	err = visitor.parseDirectory(fset, gopath)
 	if err != nil {
 		panic(err)
 	}
