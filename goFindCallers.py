@@ -27,12 +27,13 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		if len(self.view.sel()) == 1 and self.view.sel()[0].size() > 0:
 			callback(self.view.substr(self.view.sel()[0]))
 		else:
-			self.view.window().show_input_panel('Enter word to find:', '', 
-					callback, None, None)
+			sublime.status_message('Warnaing! No selection made')
+			# self.view.window().show_input_panel('Enter word to find:', '', callback, None, None)
 
 
 	def _doFind(self, wordToFind):
 		toFind = re.escape(wordToFind)
+		# print self.view.rowcol(self.view.sel()[0].begin())
 
 		parsedLocations, err = self.p.communicate(wordToFind+"="+ self.view.file_name())
 		if err != None:
@@ -49,13 +50,12 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			return False
 
 		parsedLines = parsedLocations.split('\n')
-		toAppend = ["Searching files for " + wordToFind]
+		toAppend = ["Matched " + str(len(parsedLines)/2) + " files for " + wordToFind]
 		i = 0
 		while i<(len(parsedLines)-1):
 			fileLoc = parsedLines[i]
 			regions = parsedLines[i+1].split(',')
 			i = i + 2 
-			print fileLoc, regions
 			filelines = linecache.getlines(fileLoc)
 			linecount = len(filelines)
 

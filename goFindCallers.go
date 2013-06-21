@@ -71,12 +71,10 @@ func parseDirectory(fset *token.FileSet, path string, v ast.Visitor) (first erro
 		return err
 	}
 	defer fd.Close()
-
 	fileList, err := fd.Readdir(-1)
 	if err != nil {
 		return err
 	}
-
 	for _, f := range fileList {
 		filepath := filepath.Join(path, f.Name())
 		if f.IsDir() {
@@ -96,6 +94,14 @@ func parseDirectory(fset *token.FileSet, path string, v ast.Visitor) (first erro
 	return nil
 }
 
+func getFunctionString(file *ast.File, toFind string) string {
+
+	if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
+		return file.Name.Name + "." + toFind
+	}
+	return toFind
+}
+
 func main() {
 	// visitor used to ast.Walk
 	visitor := new(FuncVisitor)
@@ -108,9 +114,9 @@ func main() {
 	}
 
 	// Format: functoFind=filepath
-	splitline := strings.Split(string(line), "=")
-	visitor.toFind = splitline[0]
-	filepath := splitline[1]
+	splitInput := strings.Split(string(line), "=")
+
+	filepath := splitInput[1]
 
 	// Create the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
@@ -121,6 +127,8 @@ func main() {
 
 	// walk through first file
 	ast.Walk(visitor, filenode)
+
+	visitor.toFind = getFunctionString(filenode, splitInput[0])
 
 	// Find, open and parse Gopath
 	gopath := os.Getenv("GOPATH")
