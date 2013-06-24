@@ -120,13 +120,38 @@ func getFunctionString(file *ast.File, toFind string) (string, bool) {
 				}
 			}
 		}
-
 	} else {
 		if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 			return (file.Name.Name + "." + toFind), true
 		}
 	}
 	return toFind, false
+}
+
+// Function builds a output string based on the FuncVistor's poslist, relative to fset
+// format: 	filename\n comma separated line positions\n
+// returns "NotFound" if the poslist is empty, thus contains no find results
+func (v *FuncVisitor) buildOutput(fset *token.FileSet) string {
+	// Map with filepath as key and string array of lines
+	posoutput := make(map[string][]string)
+	OutputString := ""
+
+	if len(v.poslist) > 0 {
+		for n := range v.poslist {
+			cur := v.poslist[n]
+			if cur.IsValid() {
+				posoutput[fset.Position(cur).Filename] = append(posoutput[fset.Position(cur).Filename], strconv.Itoa(fset.Position(cur).Line))
+			}
+		}
+		// For each key=filepath append string to output string
+		for filekey, _ := range posoutput {
+			OutputString = OutputString + filekey + "\n" + strings.Join(posoutput[filekey], ",") + "\n"
+		}
+		return OutputString
+	} else {
+		// return flag NotFound to indicate that the function was not found
+		return "NotFound"
+	}
 }
 
 func main() {
@@ -171,25 +196,6 @@ func main() {
 		panic(err)
 	}
 
-	// Map with filepath as key and string array of lines
-	posoutput := make(map[string][]string)
-	OutputString := ""
-
-	if len(visitor.poslist) > 0 {
-		for n := range visitor.poslist {
-			cur := visitor.poslist[n]
-			if cur.IsValid() {
-				posoutput[fset.Position(cur).Filename] = append(posoutput[fset.Position(cur).Filename], strconv.Itoa(fset.Position(cur).Line))
-			}
-		}
-		// For each key=filepath append string to output string
-		for filekey, _ := range posoutput {
-			OutputString = OutputString + filekey + "\n" + strings.Join(posoutput[filekey], ",") + "\n"
-		}
-		fmt.Print(OutputString)
-	} else {
-		// Print flag NotFound to indicate that the function was not found
-		fmt.Printf("NotFound")
-	}
+	fmt.Print(visitor.buildOutput(fset))
 
 }
