@@ -87,7 +87,7 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 				if err != nil {
 					return err
 				}
-				v.toFind, _ = getFunctionString(filenode, v.orginalFind)
+				v.setFuncString(filenode)
 				//Walk and find function
 				ast.Walk(v, filenode)
 			}
@@ -98,11 +98,11 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 
 // Checks current file and its package and import information to determine
 // what the search string should be change to
-func getFunctionString(file *ast.File, toFind string) (string, bool) {
+func (v *FuncVisitor) setFuncString(file *ast.File) {
 	// Check if selector Expression
-	if strings.Contains(toFind, ".") {
+	if strings.Contains(v.orginalFind, ".") {
 		// If exprSel split
-		exprSel := strings.Split(toFind, ".")
+		exprSel := strings.Split(v.orginalFind, ".")
 
 		// if import rename != nil
 		for i := range file.Imports {
@@ -111,21 +111,22 @@ func getFunctionString(file *ast.File, toFind string) (string, bool) {
 				// If import rename == Expr import name
 				selc := strings.Split(strings.Trim(curImport.Path.Value, "\""), "/")
 				if strings.EqualFold(exprSel[0], selc[len(selc)-1]) {
-					return (curImport.Name.String() + "." + exprSel[1]), false
+					v.toFind = curImport.Name.String() + "." + exprSel[1]
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
-						return (selc[len(selc)-1] + "." + exprSel[1]), true
+						v.toFind = selc[len(selc)-1] + "." + exprSel[1]
+						v.orginalFind = v.toFind
 					}
 				}
 			}
 		}
 	} else {
-		if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
-			return (file.Name.Name + "." + toFind), true
+		if file.Scope.Objects[v.orginalFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
+			v.toFind = file.Name.Name + "." + v.orginalFind
+			v.orginalFind = v.toFind
 		}
 	}
-	return toFind, false
 }
 
 // Function builds a output string based on the FuncVistor's poslist, relative to fset
@@ -165,10 +166,10 @@ func main() {
 		panic(err)
 	}
 
-	// Format: functoFind=filepath
-	splitInput := strings.Split(string(line), "=")
-
-	filepath := splitInput[1]
+	// Format: funcToFind=filepath
+	find_Path := strings.Split(string(line), "=")
+	filepath := find_Path[1]
+	visitor.orginalFind = find_Path[0]
 
 	// Build the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
@@ -177,19 +178,11 @@ func main() {
 		panic(err)
 	}
 
-	visitor.orginalFind = splitInput[0]
-	visitor.toFind = splitInput[0]
-
 	// walk through first file
 	ast.Walk(visitor, filenode)
+	visitor.setFuncString(filenode)
 
-	tf, change := getFunctionString(filenode, splitInput[0])
-	visitor.toFind = tf
-	if change {
-		visitor.orginalFind = tf
-	}
-
-	// Find, open and parse Gopath
+	// Find, open and parse files in Gopath
 	gopath := os.Getenv("GOPATH")
 	err = visitor.parseDirectory(fset, gopath)
 	if err != nil {
