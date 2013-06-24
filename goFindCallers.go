@@ -87,7 +87,7 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 				if err != nil {
 					return err
 				}
-				v.toFind, _ = checkExprSel(filenode, v.orginalFind)
+				v.toFind, _ = getFunctionString(filenode, v.orginalFind)
 				//Walk and find function
 				ast.Walk(v, filenode)
 			}
@@ -97,27 +97,30 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 }
 
 func getFunctionString(file *ast.File, toFind string) (string, bool) {
+	// Check if selector Expression
+	if strings.Contains(toFind, ".") {
+		// If exprSel split
+		exprSel := strings.Split(toFind, ".")
 
-	if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
-		return (file.Name.Name + "." + toFind), false
-	}
-
-	return checkExprSel(file, toFind)
-}
-
-func checkExprSel(file *ast.File, toFind string) (string, bool) {
-	exprSel := strings.Split(toFind, ".")
-	if len(exprSel) > 1 {
+		// if import rename != nil
 		for i := range file.Imports {
 			curImport := file.Imports[i]
-			if curImport.Name != nil && strings.EqualFold(exprSel[0], strings.Trim(curImport.Path.Value, "\"")) {
-				return (curImport.Name.String() + "." + exprSel[1]), false
-			} else {
-				if curImport.Name != nil && strings.EqualFold(exprSel[0], curImport.Name.String()) {
-					return (strings.Trim(curImport.Path.Value, "\"") + "." + exprSel[1]), true
+			if curImport.Name != nil {
+				// If import rename == Expr import name
+				if strings.EqualFold(exprSel[0], strings.Trim(curImport.Path.Value, "\"")) {
+					return (curImport.Name.String() + "." + exprSel[1]), false
+				} else {
+					// If original import name == Expr
+					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
+						return (strings.Trim(curImport.Path.Value, "\"") + "." + exprSel[1]), true
+					}
 				}
 			}
-			// f.Println(file.Imports[i].Name, file.Imports[i].Path.Value)
+		}
+
+	} else {
+		if file.Scope.Objects[toFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
+			return (file.Name.Name + "." + toFind), true
 		}
 	}
 	return toFind, false
@@ -148,6 +151,7 @@ func main() {
 
 	visitor.orginalFind = splitInput[0]
 	visitor.toFind = splitInput[0]
+
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
