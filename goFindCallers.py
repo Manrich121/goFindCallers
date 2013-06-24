@@ -34,7 +34,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 	def _doFind(self, wordToFind):
 		toFind = re.escape(wordToFind)
 		# print self.view.rowcol(self.view.sel()[0].begin())
-
+		
 		parsedLocations, err = self.p.communicate(wordToFind+"="+ self.view.file_name())
 		if err != None:
 			print err
@@ -130,3 +130,44 @@ class ShowResultsCommand(sublime_plugin.TextCommand):
 
 		regions = self.view.find_all(toHighlight)
 		self.view.add_regions('find_results', regions, 'found', '', sublime.DRAW_OUTLINED)
+
+
+# FindInFiles edited to handle double clicking and cntr+enter shortcuts
+class FindInFilesGotoCommand(sublime_plugin.TextCommand):
+    def run_(self, args):
+        view = self.view
+        if view.name() == "Find Results":
+            line_no = self.get_line_no()
+            file_name = self.get_file()
+            if line_no is not None and file_name is not None:
+                file_loc = "%s:%s" % (file_name, line_no)
+                view.window().open_file(file_loc, sublime.ENCODED_POSITION)
+            elif file_name is not None:
+                view.window().open_file(file_name)
+        else:
+            system_command = args["command"] if "command" in args else None
+            if system_command:
+                system_args = dict({"event": args["event"]}.items() + args["args"].items())
+                self.view.run_command(system_command, system_args)
+
+    def get_line_no(self):
+        view = self.view
+        if len(view.sel()) == 1:
+            line_text = view.substr(view.line(view.sel()[0]))
+            match = re.match(r"\s*(\d+).+", line_text)
+            if match:
+                return match.group(1)
+        return None
+
+    def get_file(self):
+        view = self.view
+        if len(view.sel()) == 1:
+            line = view.line(view.sel()[0])
+            while line.begin() > 0:
+                line_text = view.substr(line)
+                match = re.match(r"(.+):$", line_text)
+                if match:
+                    if os.path.exists(match.group(1)):
+                        return match.group(1)
+                line = view.line(line.begin() - 1)
+        return None

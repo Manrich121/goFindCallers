@@ -96,6 +96,8 @@ func (v *FuncVisitor) parseDirectory(fset *token.FileSet, path string) (first er
 	return nil
 }
 
+// Checks current file and its package and import information to determine
+// what the search string should be change to
 func getFunctionString(file *ast.File, toFind string) (string, bool) {
 	// Check if selector Expression
 	if strings.Contains(toFind, ".") {
@@ -107,12 +109,13 @@ func getFunctionString(file *ast.File, toFind string) (string, bool) {
 			curImport := file.Imports[i]
 			if curImport.Name != nil {
 				// If import rename == Expr import name
-				if strings.EqualFold(exprSel[0], strings.Trim(curImport.Path.Value, "\"")) {
+				selc := strings.Split(strings.Trim(curImport.Path.Value, "\""), "/")
+				if strings.EqualFold(exprSel[0], selc[len(selc)-1]) {
 					return (curImport.Name.String() + "." + exprSel[1]), false
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
-						return (strings.Trim(curImport.Path.Value, "\"") + "." + exprSel[1]), true
+						return (selc[len(selc)-1] + "." + exprSel[1]), true
 					}
 				}
 			}
@@ -142,7 +145,7 @@ func main() {
 
 	filepath := splitInput[1]
 
-	// Create the AST by parsing src.
+	// Build the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
 	filenode, err := parser.ParseFile(fset, filepath, nil, 0)
 	if err != nil {

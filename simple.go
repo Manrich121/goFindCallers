@@ -21,12 +21,4 @@ func bla(val int) int {
 
 func main() {
 	f.Println(a(1))
-	fset := token.NewFileSet()
-	file, _ := parser.ParseFile(fset, "C:/Users/Manrich/AppData/Roaming/Sublime Text 2/Packages/GoFindCallers/simple.go", nil, 0)
-
-	ast.Print(fset, file)
-
-	for i := range file.Imports {
-		f.Println(file.Imports[i].Name, file.Imports[i].Path.Value)
-	}
 }
