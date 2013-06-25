@@ -22,10 +22,16 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		# Check OS and build the executable path
 		if _platform == "win32":
 			# Windows
-			processPath = plugPath+"\GoFindCallers\goFindCallers.exe"
+			processPath = plugPath+"\GoFindCallers\src\cmd\goFindCallers\goFindCallers.exe"
 		else:
 			# linux and OS X
-			processPath = plugPath+"\GoFindCallers\goFindCallers"   
+			processPath = plugPath+"\GoFindCallers\src\cmd\goFindCallers\goFindCallers"  
+
+		# Check exe build
+		if not os.path.isfile(processPath):
+			# subprocess.Popen(["go", 'build', 'C:\Users\Manrich\AppData\Roaming\Sublime Text 2\Packages\GoFindCallers\src\cmd\goFindCallers\goFindCallers.go']).wait()
+			print "Please build goFindCallers.go"
+			return
 
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)

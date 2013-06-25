@@ -15,7 +15,7 @@ var setfunctests = []struct {
 	tstFile string
 	toFind  string
 	out     string
-	next    string
+	after   string
 }{
 
 	{"hello.go", "fmt.Println", "fmt.Println", "fmt.Println"},
@@ -47,8 +47,8 @@ func TestSetFuncString(t *testing.T) {
 			t.Errorf("v.SetFuncString(file=%q, toFind=%q) = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.out)
 		}
 		s = v.OriginFind
-		if s != tt.next {
-			t.Errorf("v.SetFuncString(file=%q, toFind=%q) nextFind = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.next)
+		if s != tt.after {
+			t.Errorf("v.SetFuncString(file=%q, toFind=%q) afterFind = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.after)
 		}
 	}
 }
@@ -73,10 +73,11 @@ var buildOutputtests = []struct {
 		"20\n" +
 		"testdata\\simple.go\n" +
 		"30\n"},
+	{"foo","NotFound"},
 }
 
+// Test the output string generated after parsing the TESTPATH
 func TestBuildOutput(t *testing.T) {
-
 	for _, tt := range buildOutputtests {
 		v := new(FuncVisitor)
 		fset := token.NewFileSet()

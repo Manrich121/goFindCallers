@@ -51,11 +51,13 @@ func (v *FuncVisitor) findAndMatch(fun ast.Node, toFind string) bool {
 	// If at selector expression split on '.' and call findAndMatch on each part
 	case *ast.SelectorExpr:
 		exprSel := strings.Split(v.toFind, ".")
-		if v.findAndMatch(a.X, exprSel[0]) {
-			return v.findAndMatch(a.Sel, exprSel[1])
+		if len(exprSel) > 1 {
+			if v.findAndMatch(a.X, exprSel[0]) {
+				return v.findAndMatch(a.Sel, exprSel[1])
+			}
 		}
 	}
-	// return false if node not ast.Indent or ast.SelectorExpr
+	// return false if node is not ast.Indent or ast.SelectorExpr
 	return false
 }
 

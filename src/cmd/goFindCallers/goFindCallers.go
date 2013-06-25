@@ -40,10 +40,9 @@ func main() {
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
-	// visitor.SetFuncString(filenode)
-
 	// Find, open and parse files in Gopath
 	gopath := strings.Split(os.Getenv("GOPATH"), ";")
+
 	for p := range gopath {
 		err = visitor.ParseDirectory(fset, gopath[p])
 		if err != nil {
