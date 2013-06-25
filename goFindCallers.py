@@ -9,17 +9,29 @@ import sys
 import subprocess
 import linecache
 from threading import Thread
+from sys import platform as _platform
 
 class GoFindCallersCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		selections = self.view.sel()
-		# Startup info stuff
+		# Startup info stuff, to block cmd window flash
 		startupinfo = subprocess.STARTUPINFO()
 		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
 		plugPath = sublime.packages_path()
+		
+		# Check OS and build the executable path
+		if _platform == "linux" or _platform == "linux2":
+		    # linux
+		    processPath = plugPath+"\GoFindCallers\goFindCallers"
+		elif _platform == "darwin":
+		    # OS X
+		    processPath = plugPath+"\GoFindCallers\goFindCallers"
+		elif _platform == "win32":
+		    # Windows
+		    processPath = plugPath+"\GoFindCallers\goFindCallers.exe"
+
 		# Open subprocess
-		self.p = subprocess.Popen([plugPath+"\GoFindCallers\goFindCallers.exe"], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+		self.p = subprocess.Popen([processPath], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
 		self._callbackWithWordToFind(self._doFind)
 

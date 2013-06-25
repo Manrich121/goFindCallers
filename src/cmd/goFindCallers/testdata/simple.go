@@ -2,9 +2,6 @@ package main
 
 import (
 	f "fmt"
-	"go/ast"
-	"go/parser"
-	"go/token"
 )
 
 func a(val int) int {
@@ -21,4 +18,5 @@ func bla(val int) int {
 
 func main() {
 	f.Println(a(1))
+	panic("bla")
 }
