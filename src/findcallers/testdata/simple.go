@@ -13,8 +13,12 @@ func a(val int) int {
 	return 0
 }
 
-func bla(val int) int {
+func Bla(val int) int {
 	return -1
+}
+
+func B() {
+	return 0
 }
 
 func main() {
@@ -23,4 +27,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	B()
 }

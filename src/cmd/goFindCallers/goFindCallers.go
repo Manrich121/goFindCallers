@@ -45,7 +45,7 @@ func main() {
 	// Find, open and parse files in Gopath
 	gopath := strings.Split(os.Getenv("GOPATH"), ";")
 	for p := range gopath {
-		visitor, err = visitor.ParseDirectory(fset, gopath[p])
+		err = visitor.ParseDirectory(fset, gopath[p])
 		if err != nil {
 			panic(err)
 		}

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	TESTDATA = "./testdata/"
+	TESTPATH = "./testdata/"
 )
 
 var setfunctests = []struct {
@@ -18,22 +18,25 @@ var setfunctests = []struct {
 	next    string
 }{
 
-	{"hello.go", "fmt.Print", "fmt.Print", "fmt.Print"},
+	{"hello.go", "fmt.Println", "fmt.Println", "fmt.Println"},
 	{"hello.go", "a", "a", "a"},
 	{"hello.go", "ioutil.ReadFile", "ioutil.ReadFile", "ioutil.ReadFile"},
+
+	// Import renamed
 	{"simple.go", "f.Println", "f.Println", "fmt.Println"},
 	{"simple.go", "fmt.Println", "f.Println", "fmt.Println"},
-	{"simple.go", "bla", "bla", "foo.bla"},
+	{"simple.go", "Bla", "Bla", "foo.Bla"},
 	{"simple.go", "a", "a", "foo.a"},
+	{"simple.go", "foo.B", "B", "foo.B"},
 	{"simple.go", "io.ReadFile", "io.ReadFile", "ioutil.ReadFile"},
 }
 
-// Verifies that
+// Verifies SetFuncString called on a findcallers.FuncVisitor
 func TestSetFuncString(t *testing.T) {
 	fset := token.NewFileSet()
 	for _, tt := range setfunctests {
-		filepath := TESTDATA + tt.tstFile
 		v := new(FuncVisitor)
+		filepath := TESTPATH + tt.tstFile
 		v.OriginFind = tt.toFind
 		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
 		if err != nil {
@@ -46,6 +49,46 @@ func TestSetFuncString(t *testing.T) {
 		s = v.OriginFind
 		if s != tt.next {
 			t.Errorf("v.SetFuncString(file=%q, toFind=%q) nextFind = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.next)
+		}
+	}
+}
+
+var buildOutputtests = []struct {
+	toFind string
+	out    string
+}{
+	{"a", "testdata\\hello.go\n" +
+		"14\n" +
+		"testdata\\simple.go\n" +
+		"25\n"},
+	{"fmt.Println", "testdata\\hello.go\n" +
+		"15\n" +
+		"testdata\\simple.go\n" +
+		"9,25\n"},
+	{"panic", "testdata\\hello.go\n" +
+		"18\n" +
+		"testdata\\simple.go\n" +
+		"28\n"},
+	{"foo.B", "testdata\\hello.go\n" +
+		"20\n" +
+		"testdata\\simple.go\n" +
+		"30\n"},
+}
+
+func TestBuildOutput(t *testing.T) {
+
+	for _, tt := range buildOutputtests {
+		v := new(FuncVisitor)
+		fset := token.NewFileSet()
+		v.OriginFind = tt.toFind
+		err := v.ParseDirectory(fset, TESTPATH)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		s := v.BuildOutput(fset)
+		if s != tt.out {
+			t.Errorf("v.BuildOutput(path=%q, toFind=%q) = <%s> want <%s>", TESTPATH, tt.toFind, s, tt.out)
 		}
 	}
 

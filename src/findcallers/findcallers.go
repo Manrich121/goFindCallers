@@ -62,29 +62,29 @@ func (v *FuncVisitor) findAndMatch(fun ast.Node, toFind string) bool {
 // ParseDirectory recursively walk through the path and parses each file using parser.ParseFile
 // as well as calls findAndMatch
 // It takes fset, the starting filepath and an ast.Vistor
-func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (w *FuncVisitor, first error) {
+func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (first error) {
 	fd, err := os.Open(path)
 	if err != nil {
-		return v, err
+		return err
 	}
 	defer fd.Close()
 	fileList, err := fd.Readdir(-1)
 	if err != nil {
-		return v, err
+		return err
 	}
 	for _, f := range fileList {
 		filepath := filepath.Join(path, f.Name())
 		if f.IsDir() {
-			v, err := v.ParseDirectory(fset, filepath)
+			err := v.ParseDirectory(fset, filepath)
 			if err != nil {
-				return v, err
+				return err
 			}
 		} else {
 			// Only parse .go-files
 			if strings.HasSuffix(f.Name(), ".go") {
 				filenode, err := parser.ParseFile(fset, filepath, nil, 0)
 				if err != nil {
-					return v, err
+					return err
 				}
 				v.SetFuncString(filenode)
 				//Walk and find function
@@ -92,7 +92,7 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (w *FuncV
 			}
 		}
 	}
-	return v, nil
+	return nil
 }
 
 // Checks current file and its package and import information to determine
@@ -120,6 +120,10 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) string {
 					}
 				}
 			}
+		}
+		if strings.EqualFold(file.Name.Name, exprSel[0]) && file.Scope.Objects[exprSel[1]] != nil {
+			v.toFind = exprSel[1]
+			return v.toFind
 		}
 	} else {
 		// If the current file is a non-main package and the toFind string its function

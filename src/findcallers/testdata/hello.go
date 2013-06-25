@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"foo"
 	"io/ioutil"
 )
 
@@ -10,9 +11,11 @@ func a() int {
 }
 
 func main() {
-	fmt.Print("Hallo World!")
+	a()
+	fmt.Println("Hallo World!")
 	src, err := ioutil.ReadFile("hello.go")
 	if err != nil {
 		panic(err)
 	}
+	foo.B()
 }
