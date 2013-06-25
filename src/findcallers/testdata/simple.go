@@ -1,7 +1,8 @@
-package main
+package foo
 
 import (
 	f "fmt"
+	io "io/ioutil"
 )
 
 func a(val int) int {
@@ -18,5 +19,8 @@ func bla(val int) int {
 
 func main() {
 	f.Println(a(1))
-	panic("bla")
+	src, err := io.ReadFile("simple.go")
+	if err != nil {
+		panic(err)
+	}
 }

@@ -26,7 +26,7 @@ func main() {
 	// Format: funcToFind=filepath
 	find_Path := strings.Split(string(inline), "=")
 	filepath := find_Path[1]
-	visitor.OrginalFind = find_Path[0]
+	visitor.OriginFind = find_Path[0]
 
 	// Build the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset

@@ -20,15 +20,12 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		plugPath = sublime.packages_path()
 		
 		# Check OS and build the executable path
-		if _platform == "linux" or _platform == "linux2":
-		    # linux
-		    processPath = plugPath+"\GoFindCallers\goFindCallers"
-		elif _platform == "darwin":
-		    # OS X
-		    processPath = plugPath+"\GoFindCallers\goFindCallers"
-		elif _platform == "win32":
-		    # Windows
-		    processPath = plugPath+"\GoFindCallers\goFindCallers.exe"
+		if _platform == "win32":
+			# Windows
+			processPath = plugPath+"\GoFindCallers\goFindCallers.exe"
+		else:
+			# linux and OS X
+			processPath = plugPath+"\GoFindCallers\goFindCallers"   
 
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
