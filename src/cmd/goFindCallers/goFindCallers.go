@@ -13,8 +13,6 @@ import (
 )
 
 func main() {
-	// visitor used to ast.Walk
-	visitor := new(findcallers.FuncVisitor)
 	reader := bufio.NewReader(os.Stdin)
 
 	// Read in function name to find and first file path to search from stdin
@@ -28,7 +26,9 @@ func main() {
 	// Split firstfile and gopath variables
 	filepath := strings.Split(find_Path[1], string(os.PathListSeparator))
 	gopath := filepath[1:]
-	visitor.OriginFind = find_Path[0]
+
+	// visitor used to ast.Walk
+	visitor := findcallers.NewFuncVisitor(find_Path[0])
 
 	// Build the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset

@@ -14,9 +14,19 @@ import (
 // toFind is the function name to be found
 // poslist is a slice of type token.Pos used to store Positions within files
 type FuncVisitor struct {
-	OriginFind string
-	toFind     string
-	poslist    []token.Pos
+	nextFind string
+	toFind   string
+	poslist  []token.Pos
+}
+
+func NewFuncVisitor(toFind string) *FuncVisitor {
+	v := new(FuncVisitor)
+	v.nextFind = toFind
+	return v
+}
+
+func (v *FuncVisitor) NextFind() string {
+	return v.nextFind
 }
 
 // Visit interface used by as.Walk to traverse the AST
@@ -34,9 +44,6 @@ func (v *FuncVisitor) Visit(node ast.Node) (w ast.Visitor) {
 // Find funcVisitor also has a find() method used as wrapper to locate the function within a give ast.Node
 // return type is a bool to determine if the function was found at the current node
 func (v *FuncVisitor) find(fun ast.Node) bool {
-	// if v.toFind == "" {
-	// 	v.toFind = v.OriginFind
-	// }
 	return v.findAndMatch(fun, v.toFind)
 }
 
@@ -101,12 +108,13 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (first er
 // what the search string should be change to
 func (v *FuncVisitor) SetFuncString(file *ast.File) string {
 	// Check if selector Expression
-	if strings.Contains(v.OriginFind, ".") {
+	if strings.Contains(v.nextFind, ".") {
 		// If exprSel split
-		exprSel := strings.Split(v.OriginFind, ".")
+		exprSel := strings.Split(v.nextFind, ".")
 		// if import rename != nil
 		for i := range file.Imports {
 			curImport := file.Imports[i]
+
 			if curImport.Name != nil {
 				// If import rename == Expr import name
 				selc := strings.Split(strings.Trim(curImport.Path.Value, "\""), "/")
@@ -116,8 +124,8 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) string {
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
-						v.toFind = v.OriginFind
-						v.OriginFind = selc[len(selc)-1] + "." + exprSel[1]
+						v.toFind = v.nextFind
+						v.nextFind = selc[len(selc)-1] + "." + exprSel[1]
 						return v.toFind
 					}
 				}
@@ -129,13 +137,13 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) string {
 		}
 	} else {
 		// If the current file is a non-main package and the toFind string its function
-		if file.Scope.Objects[v.OriginFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
-			v.toFind = v.OriginFind
-			v.OriginFind = file.Name.Name + "." + v.OriginFind
+		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
+			v.toFind = v.nextFind
+			v.nextFind = file.Name.Name + "." + v.nextFind
 			return v.toFind
 		}
 	}
-	v.toFind = v.OriginFind
+	v.toFind = v.nextFind
 	return v.toFind
 }
 

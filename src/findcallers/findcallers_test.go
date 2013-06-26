@@ -15,7 +15,7 @@ var setfunctests = []struct {
 	tstFile string
 	toFind  string
 	out     string
-	after   string
+	next    string
 }{
 
 	{"hello.go", "fmt.Println", "fmt.Println", "fmt.Println"},
@@ -29,15 +29,17 @@ var setfunctests = []struct {
 	{"simple.go", "a", "a", "foo.a"},
 	{"simple.go", "foo.B", "B", "foo.B"},
 	{"simple.go", "io.ReadFile", "io.ReadFile", "ioutil.ReadFile"},
+
+	// pgkpath and pkgname mismatch
+	{"pakpak/mainpak.go", "pak.Pubpak", "pak.Pubpak", "pak.Pubpak"},
 }
 
 // Verifies SetFuncString called on a findcallers.FuncVisitor
 func TestSetFuncString(t *testing.T) {
 	fset := token.NewFileSet()
 	for _, tt := range setfunctests {
-		v := new(FuncVisitor)
+		v := NewFuncVisitor(tt.toFind)
 		filepath := TESTPATH + tt.tstFile
-		v.OriginFind = tt.toFind
 		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
 		if err != nil {
 			t.Fatal(err)
@@ -46,9 +48,9 @@ func TestSetFuncString(t *testing.T) {
 		if s != tt.out {
 			t.Errorf("v.SetFuncString(file=%q, toFind=%q) = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.out)
 		}
-		s = v.OriginFind
-		if s != tt.after {
-			t.Errorf("v.SetFuncString(file=%q, toFind=%q) afterFind = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.after)
+		s = v.NextFind()
+		if s != tt.next {
+			t.Errorf("v.SetFuncString(file=%q, toFind=%q) nextFind = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.next)
 		}
 	}
 }
@@ -79,9 +81,8 @@ var buildOutputtests = []struct {
 // Test the output string generated after parsing the TESTPATH
 func TestBuildOutput(t *testing.T) {
 	for _, tt := range buildOutputtests {
-		v := new(FuncVisitor)
+		v := NewFuncVisitor(tt.toFind)
 		fset := token.NewFileSet()
-		v.OriginFind = tt.toFind
 		err := v.ParseDirectory(fset, TESTPATH)
 		if err != nil {
 			t.Fatal(err)
