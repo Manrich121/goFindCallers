@@ -22,7 +22,7 @@ The `GoFind Callers` command is accessible via the Command Palette, `Ctrl + Shif
 
 Or via the keyboard shortcut: `Ctrl + Alt + F` on all platforms.
 
-After a search has been completed, search results will be displayed in "Find Results". Jump to the current file and line, by `Double clicking' of `Ctrl + Enter` with the courser is positioned.
+After a search has been completed, search results will be displayed in "Find Results". Jump to the current file and line, by `Double clicking` of `Ctrl + Enter` with the courser is positioned.
 
 ## Requirements
 
@@ -31,6 +31,6 @@ After a search has been completed, search results will be displayed in "Find Res
 
 [go]: http://golang.org/
 
-## WORK in PROGRESS
+### WORK in PROGRESS
 
 Please bear in mind this is a work in progress, there will be bugs.
