@@ -73,7 +73,7 @@ var buildOutputtests = []struct {
 		"20\n" +
 		"testdata\\simple.go\n" +
 		"30\n"},
-	{"foo","NotFound"},
+	{"foo", "NotFound"},
 }
 
 // Test the output string generated after parsing the TESTPATH

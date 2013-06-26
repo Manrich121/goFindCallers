@@ -22,17 +22,19 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		# Check OS and build the executable path
 		if _platform == "win32":
 			# Windows
-			processPath = plugPath+"\GoFindCallers\src\cmd\goFindCallers\goFindCallers.exe"
+			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers.exe'
 		else:
 			# linux and OS X
-			processPath = plugPath+"\GoFindCallers\src\cmd\goFindCallers\goFindCallers"  
+			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers'  
 
 		# Check exe build
 		if not os.path.isfile(processPath):
-			# subprocess.Popen(["go", 'build', 'C:\Users\Manrich\AppData\Roaming\Sublime Text 2\Packages\GoFindCallers\src\cmd\goFindCallers\goFindCallers.go']).wait()
-			print "Please build goFindCallers.go"
-			return
+			buildpath = plugPath+r'\GoFindCallers\src\cmd\goFindCallers'
+			sublime.status_message('Installing plugin dependencies...')
+			subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
 
+		# Get gopath and format for stdin
+		self.gopath = self.getenv()
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
 
@@ -48,16 +50,14 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 	def _doFind(self, wordToFind):
 		toFind = re.escape(wordToFind)
-		# print self.view.rowcol(self.view.sel()[0].begin())
-		
-		parsedLocations, err = self.p.communicate(wordToFind+"="+ self.view.file_name())
+
+		parsedLocations, err = self.p.communicate(wordToFind+"="+ self.view.file_name()+os.pathsep+self.gopath)
 		if err != None:
 			print err
 			
 		parsedLocations = parsedLocations.rstrip('\n')
 		if parsedLocations == 'NotFound':
 			sublime.status_message('Warnaing! Selection not found')
-			return False
 
 		# Create Find Results window
 		self.resultsPane = self._getResultsPane()
@@ -136,6 +136,11 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		
 		return ' {sp}{lineNumber}{colon} {text}'.format(lineNumber = lineNumber,
 				colon = colon, text = line, sp = spacer)
+
+	def getenv(self):
+		e = os.environ.copy()
+		roots = e.get('GOPATH', '')
+		return roots
 
 
 class ShowResultsCommand(sublime_plugin.TextCommand):

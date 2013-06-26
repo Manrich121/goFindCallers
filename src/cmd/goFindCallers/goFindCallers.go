@@ -25,12 +25,14 @@ func main() {
 
 	// Format: funcToFind=filepath
 	find_Path := strings.Split(string(inline), "=")
-	filepath := find_Path[1]
+	// Split firstfile and gopath variables
+	filepath := strings.Split(find_Path[1], string(os.PathListSeparator))
+	gopath := filepath[1:]
 	visitor.OriginFind = find_Path[0]
 
 	// Build the AST by parsing src.
 	fset := token.NewFileSet() // positions are relative to fset
-	filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+	filenode, err := parser.ParseFile(fset, filepath[0], nil, 0)
 	if err != nil {
 		panic(err)
 	}
@@ -40,9 +42,7 @@ func main() {
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
-	// Find, open and parse files in Gopath
-	gopath := strings.Split(os.Getenv("GOPATH"), ";")
-
+	// Open and parse files in Gopath
 	for p := range gopath {
 		err = visitor.ParseDirectory(fset, gopath[p])
 		if err != nil {
