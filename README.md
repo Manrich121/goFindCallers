@@ -12,7 +12,7 @@ Functionality includes:
 - Distinguishes between `func` declarations and calls, as well as handle selector-expressions, setting the search parameters accordingly.
 
 ## Installation
-`goFindCallers` is available via [Package Control][pkg-ctrl] and can be found as `goFindCallers`.
+`goFindCallers` will be available via [Package Control][pkg-ctrl] and can be found as `goFindCallers`.
 
 [pkg-ctrl]: http://wbond.net/sublime_packages/package_control
 
