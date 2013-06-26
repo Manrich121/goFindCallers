@@ -12,7 +12,7 @@ Functionality includes:
 - Distinguishes between `func` declarations and calls, as well as handle selector-expressions, setting the search parameters accordingly.
 
 ## Installation
-`goFindCallers` is available via [Package Control][pkg-ctrl] and can be found as `GoFind Callers`.
+`goFindCallers` is available via [Package Control][pkg-ctrl] and can be found as `goFindCallers`.
 
 [pkg-ctrl]: http://wbond.net/sublime_packages/package_control
 
@@ -22,7 +22,7 @@ The `GoFind Callers` command is accessible via the Command Palette, `Ctrl + Shif
 
 Or via the keyboard shortcut: `Ctrl + Alt + F` on all platforms.
 
-After a search has been completed, search results will be displayed in "Find Results". Jump to the current file and line, by `Double clicking` of `Ctrl + Enter` with the courser is positioned.
+After a search has been completed, search results will be displayed in "Find Results". Jump to the current file and line, by `Double clicking` or `Ctrl + Enter` with the courser is positioned.
 
 ## Requirements
 
