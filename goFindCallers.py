@@ -45,7 +45,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			callback(self.view.substr(self.view.sel()[0]))
 		else:
 			# sublime.status_message('Warnaing! No selection made')
-			self.view.window().show_input_panel('Enter word to find:', '', callback, None, None)
+			self.view.window().show_input_panel('Enter function to find:', '', callback, None, None)
 
 
 	def _doFind(self, wordToFind):

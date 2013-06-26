@@ -1,13 +1,36 @@
-goFindCallers
-=============
+# GoFindCallers
 
-Sublime Text 2 plugin that adds the functionality to find all callers of selected go function
+[Sublime Text 2][subl] plug-in that adds functionality to find all callers of selected [Golang][go] function.
 
+[subl]: http://www.sublimetext.com/2
+[go]: http://golang.org/
 
-**** WORK in PROGRESS ****
+Functionality includes:
 
-Requires:
+- `GoFind callers` - Finds all function calls in current file as well as in all directories listed in `GOPATH`.
+- Handles package import renaming.
+- Distinguishes between `func` declarations and calls, as well as handle selector-expressions, setting the search parameters accordingly.
 
-Sublime Text 2
+## Installation
+`goFindCallers` is available via [Package Control][pkg-ctrl] and can be found as `GoFind Callers`.
 
-Golang v1.1
+[pkg-ctrl]: http://wbond.net/sublime_packages/package_control
+
+## Usage
+
+The `GoFind Callers` command is accessible via the Command Palette, `Ctrl + Shift + P` on Windows/Linux, `Command + Shift + P` on OS X.
+
+Or via the keyboard shortcut: `Ctrl + Alt + F` on all platforms.
+
+After a search has been completed, search results will be displayed in "Find Results". Jump to the current file and line, by `Double clicking' of `Ctrl + Enter` with the courser is positioned.
+
+## Requirements
+
+- [Golang][go] v1.0 or higher
+- Access to the `GOPATH`
+
+[go]: http://golang.org/
+
+## WORK in PROGRESS
+
+Please bear in mind this is a work in progress, there will be bugs.
