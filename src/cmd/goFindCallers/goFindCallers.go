@@ -30,7 +30,7 @@ func main() {
 	// visitor used to ast.Walk
 	visitor := findcallers.NewFuncVisitor(find_Path[0])
 
-	// Build the AST by parsing src.
+	// Build the AST by parsing the first file.
 	fset := token.NewFileSet() // positions are relative to fset
 	filenode, err := parser.ParseFile(fset, filepath[0], nil, 0)
 	if err != nil {

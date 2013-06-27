@@ -58,44 +58,6 @@ func TestSetFuncString(t *testing.T) {
 	}
 }
 
-var buildOutputtests = []struct {
-	toFind string
-	out    string
-}{
-	{"a", "testdata\\foo\\simple.go\n" +
-		"25\n"},
-	{"fmt.Println", "testdata\\foo\\simple.go\n" +
-		"9,25\n" +
-		"testdata\\hello.go\n" +
-		"15\n"},
-	{"panic", "testdata\\foo\\simple.go\n" +
-		"28\n" +
-		"testdata\\hello.go\n" +
-		"18\n"},
-	{"foo.B", "testdata\\foo\\simple.go\n" +
-		"30\n" +
-		"testdata\\hello.go\n" +
-		"20\n"},
-	{"foo", "NotFound"},
-}
-
-// Test the output string generated after parsing the TESTPATH
-func TestBuildOutput(t *testing.T) {
-	for _, tt := range buildOutputtests {
-		v := NewFuncVisitor(tt.toFind)
-		fset := token.NewFileSet()
-		err := v.ParseDirectory(fset, TESTPATH)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		s := v.BuildOutput(fset)
-		if s != tt.out {
-			t.Errorf("v.BuildOutput(path=%q, toFind=%q) = <%s> want <%s>", TESTPATH, tt.toFind, s, tt.out)
-		}
-	}
-}
-
 var pkgpathtests = []struct {
 	tstFile string
 	toFind  string
@@ -129,13 +91,51 @@ func TestPkgPath(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = v.SetPgkPath(filenode, filepath, strings.Split(GOPATH, ";"))
+		err = v.SetPkgPath(filenode, filepath, strings.Split(GOPATH, ";"))
 		if err != nil {
 			t.Fatal(err)
 		}
 		s := v.PkgPath()
 		if s != tt.out {
 			t.Errorf("v.PgkPath(path=%q, toFind=%q) = <%s> want <%s>", filepath, tt.toFind, s, tt.out)
+		}
+	}
+}
+
+var buildOutputtests = []struct {
+	toFind string
+	out    string
+}{
+	{"a", "testdata\\foo\\simple.go\n" +
+		"25\n"},
+	{"fmt.Println", "testdata\\foo\\simple.go\n" +
+		"9,25\n" +
+		"testdata\\hello.go\n" +
+		"15\n"},
+	{"panic", "testdata\\foo\\simple.go\n" +
+		"28\n" +
+		"testdata\\hello.go\n" +
+		"18\n"},
+	{"foo.B", "testdata\\foo\\simple.go\n" +
+		"30\n" +
+		"testdata\\hello.go\n" +
+		"20\n"},
+	{"foo", "NotFound"},
+}
+
+// Test the output string generated after parsing the TESTPATH
+func TestBuildOutput(t *testing.T) {
+
+	for _, tt := range buildOutputtests {
+		fset := token.NewFileSet()
+		v := NewFuncVisitor(tt.toFind)
+		err := v.ParseDirectory(fset, TESTPATH)
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := v.BuildOutput(fset)
+		if s != tt.out {
+			t.Errorf("v.BuildOutput(path=%q, toFind=%q) = <%s> want <%s>", TESTPATH, tt.toFind, s, tt.out)
 		}
 	}
 }

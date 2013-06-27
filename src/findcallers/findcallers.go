@@ -104,6 +104,7 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				if err != nil {
 					return err
 				}
+
 				v.SetFuncString(filenode)
 				//Walk and find function
 				ast.Walk(v, filenode)
@@ -113,7 +114,21 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 	return nil
 }
 
-func (v *FuncVisitor) SetPgkPath(file *ast.File, fpath string, gopath []string) error {
+func (v *FuncVisitor) pkgMatch(file *ast.File, fpath string) bool {
+
+	for _, i := range file.Imports {
+
+		if v.pkgPath == unquote(i.Path.Value) {
+			return true
+		}
+		if strings.Contains(unquote(i.Path.Value), strings.Replace(filepath.Dir(fpath), "\\", "/", -1)) {
+			return true
+		}
+	}
+	return false
+}
+
+func (v *FuncVisitor) SetPkgPath(file *ast.File, fpath string, gopath []string) error {
 	fpath, err := filepath.Abs(fpath)
 	if err != nil {
 		return err
@@ -154,7 +169,6 @@ func (v *FuncVisitor) SetPgkPath(file *ast.File, fpath string, gopath []string) 
 						}
 					}
 				}
-
 			}
 		}
 	} else {
@@ -176,18 +190,17 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) {
 		// if import rename != nil
 		for i := range file.Imports {
 			curImport := file.Imports[i]
-
 			if curImport.Name != nil {
 				// If import rename == Expr import name
-				selc := strings.Split(unquote(curImport.Path.Value), "/")
-				if strings.EqualFold(exprSel[0], selc[len(selc)-1]) {
+				_, selc := filepath.Split(unquote(curImport.Path.Value))
+				if strings.EqualFold(exprSel[0], selc) {
 					v.toFind = curImport.Name.String() + "." + exprSel[1]
 					return
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
 						v.toFind = v.nextFind
-						v.nextFind = selc[len(selc)-1] + "." + exprSel[1]
+						v.nextFind = selc + "." + exprSel[1]
 						return
 					}
 				}
