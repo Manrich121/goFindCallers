@@ -14,6 +14,7 @@ import (
 // toFind is the function name to be found
 // poslist is a slice of type token.Pos used to store Positions within files
 type FuncVisitor struct {
+	pkgPath  string
 	nextFind string
 	toFind   string
 	poslist  []token.Pos
@@ -27,6 +28,14 @@ func NewFuncVisitor(toFind string) *FuncVisitor {
 
 func (v *FuncVisitor) NextFind() string {
 	return v.nextFind
+}
+
+func (v *FuncVisitor) ToFind() string {
+	return v.toFind
+}
+
+func (v *FuncVisitor) PkgPath() string {
+	return v.pkgPath
 }
 
 // Visit interface used by as.Walk to traverse the AST
@@ -104,9 +113,62 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 	return nil
 }
 
+func (v *FuncVisitor) SetPgkPath(file *ast.File, fpath string, gopath []string) error {
+	fpath, err := filepath.Abs(fpath)
+	if err != nil {
+		return err
+	}
+	fsplit := strings.SplitAfterN(filepath.Dir(fpath), "\\src\\", 2)
+	fpath = strings.Replace(fsplit[len(fsplit)-1], "\\", "/", -1)
+	if strings.Contains(v.nextFind, ".") {
+		// If exprSel split
+		exprSel := strings.Split(v.nextFind, ".")
+		//Pkg Name match and in scope
+		if strings.EqualFold(file.Name.Name, exprSel[0]) && file.Scope.Objects[exprSel[1]] != nil {
+			v.pkgPath = fpath
+			return nil
+		} else {
+			for i := range file.Imports {
+				curImport := file.Imports[i]
+				_, selc := filepath.Split(unquote(curImport.Path.Value))
+				// Import name match OR selector match
+				if curImport.Name != nil && (curImport.Name.String() == exprSel[0]) || exprSel[0] == selc {
+					v.pkgPath = unquote(curImport.Path.Value)
+					return nil
+				} else {
+					for _, p := range gopath {
+						curPath := filepath.Clean(p + "\\src\\" + unquote(curImport.Path.Value))
+						_, err := os.Stat(curPath)
+						if !os.IsNotExist(err) {
+							fset := token.NewFileSet()
+							pkgs, err := parser.ParseDir(fset, curPath, isFile, parser.PackageClauseOnly)
+							if err != nil {
+								return err
+							}
+							for _, i := range pkgs {
+								if i.Name == exprSel[0] {
+									v.pkgPath = unquote(curImport.Path.Value)
+									return nil
+								}
+							}
+						}
+					}
+				}
+
+			}
+		}
+	} else {
+		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
+			v.pkgPath = fpath
+			return nil
+		}
+	}
+	return nil
+}
+
 // Checks current file and its package and import information to determine
 // what the search string should be change to
-func (v *FuncVisitor) SetFuncString(file *ast.File) string {
+func (v *FuncVisitor) SetFuncString(file *ast.File) {
 	// Check if selector Expression
 	if strings.Contains(v.nextFind, ".") {
 		// If exprSel split
@@ -117,34 +179,33 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) string {
 
 			if curImport.Name != nil {
 				// If import rename == Expr import name
-				selc := strings.Split(strings.Trim(curImport.Path.Value, "\""), "/")
+				selc := strings.Split(unquote(curImport.Path.Value), "/")
 				if strings.EqualFold(exprSel[0], selc[len(selc)-1]) {
 					v.toFind = curImport.Name.String() + "." + exprSel[1]
-					return v.toFind
+					return
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {
 						v.toFind = v.nextFind
 						v.nextFind = selc[len(selc)-1] + "." + exprSel[1]
-						return v.toFind
+						return
 					}
 				}
 			}
 		}
 		if strings.EqualFold(file.Name.Name, exprSel[0]) && file.Scope.Objects[exprSel[1]] != nil {
 			v.toFind = exprSel[1]
-			return v.toFind
+			return
 		}
 	} else {
 		// If the current file is a non-main package and the toFind string its function
 		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 			v.toFind = v.nextFind
 			v.nextFind = file.Name.Name + "." + v.nextFind
-			return v.toFind
+			return
 		}
 	}
 	v.toFind = v.nextFind
-	return v.toFind
 }
 
 // Function builds a output string based on the FuncVistor's poslist, relative to fset
@@ -171,4 +232,12 @@ func (v *FuncVisitor) BuildOutput(fset *token.FileSet) string {
 		// return flag NotFound to indicate that the function was not found
 		return "NotFound"
 	}
+}
+
+func unquote(s string) string {
+	return strings.Trim(s, "\"")
+}
+
+func isFile(f os.FileInfo) bool {
+	return !f.IsDir()
 }

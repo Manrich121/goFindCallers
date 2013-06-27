@@ -4,11 +4,13 @@ import (
 	. "findcallers"
 	"go/parser"
 	"go/token"
+	"strings"
 	"testing"
 )
 
 const (
 	TESTPATH = "./testdata/"
+	GOPATH   = "C:\\Go\\gocode\\;C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\GoFindCallers\\"
 )
 
 var setfunctests = []struct {
@@ -23,12 +25,12 @@ var setfunctests = []struct {
 	{"hello.go", "ioutil.ReadFile", "ioutil.ReadFile", "ioutil.ReadFile"},
 
 	// Import renamed
-	{"simple.go", "f.Println", "f.Println", "fmt.Println"},
-	{"simple.go", "fmt.Println", "f.Println", "fmt.Println"},
-	{"simple.go", "Bla", "Bla", "foo.Bla"},
-	{"simple.go", "a", "a", "foo.a"},
-	{"simple.go", "foo.B", "B", "foo.B"},
-	{"simple.go", "io.ReadFile", "io.ReadFile", "ioutil.ReadFile"},
+	{"foo/simple.go", "f.Println", "f.Println", "fmt.Println"},
+	{"foo/simple.go", "fmt.Println", "f.Println", "fmt.Println"},
+	{"foo/simple.go", "Bla", "Bla", "foo.Bla"},
+	{"foo/simple.go", "a", "a", "foo.a"},
+	{"foo/simple.go", "foo.B", "B", "foo.B"},
+	{"foo/simple.go", "io.ReadFile", "io.ReadFile", "ioutil.ReadFile"},
 
 	// pgkpath and pkgname mismatch
 	{"pakpak/mainpak.go", "pak.Pubpak", "pak.Pubpak", "pak.Pubpak"},
@@ -44,7 +46,8 @@ func TestSetFuncString(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		s := v.SetFuncString(filenode)
+		v.SetFuncString(filenode)
+		s := v.ToFind()
 		if s != tt.out {
 			t.Errorf("v.SetFuncString(file=%q, toFind=%q) = <%s> want <%s>", tt.tstFile, tt.toFind, s, tt.out)
 		}
@@ -59,22 +62,20 @@ var buildOutputtests = []struct {
 	toFind string
 	out    string
 }{
-	{"a", "testdata\\hello.go\n" +
-		"14\n" +
-		"testdata\\simple.go\n" +
+	{"a", "testdata\\foo\\simple.go\n" +
 		"25\n"},
-	{"fmt.Println", "testdata\\hello.go\n" +
-		"15\n" +
-		"testdata\\simple.go\n" +
-		"9,25\n"},
-	{"panic", "testdata\\hello.go\n" +
-		"18\n" +
-		"testdata\\simple.go\n" +
-		"28\n"},
-	{"foo.B", "testdata\\hello.go\n" +
-		"20\n" +
-		"testdata\\simple.go\n" +
-		"30\n"},
+	{"fmt.Println", "testdata\\foo\\simple.go\n" +
+		"9,25\n" +
+		"testdata\\hello.go\n" +
+		"15\n"},
+	{"panic", "testdata\\foo\\simple.go\n" +
+		"28\n" +
+		"testdata\\hello.go\n" +
+		"18\n"},
+	{"foo.B", "testdata\\foo\\simple.go\n" +
+		"30\n" +
+		"testdata\\hello.go\n" +
+		"20\n"},
 	{"foo", "NotFound"},
 }
 
@@ -93,5 +94,48 @@ func TestBuildOutput(t *testing.T) {
 			t.Errorf("v.BuildOutput(path=%q, toFind=%q) = <%s> want <%s>", TESTPATH, tt.toFind, s, tt.out)
 		}
 	}
+}
 
+var pkgpathtests = []struct {
+	tstFile string
+	toFind  string
+	out     string
+}{
+	// Normal imports
+	{"hello.go", "fmt.Println", "fmt"},
+	{"hello.go", "foo.B", "findcallers/testdata/foo"},
+	{"hello.go", "ioutil.ReadFile", "io/ioutil"},
+
+	// Import rename
+	{"foo/simple.go", "f.Println", "fmt"},
+	{"foo/simple.go", "io.ReadFile", "io/ioutil"},
+	{"foo/simple.go", "Bla", "findcallers/testdata/foo"},
+
+	// Package paths
+	{"pakpak/pakkie/pakkie.go", "Pak", "findcallers/testdata/pakpak/pakkie"},
+	{"pakpak/pak/pak.go", "Pubpak", "findcallers/testdata/pakpak/pak"},
+	{"pakpak/mainpak.go", "pakkie.Pak", "findcallers/testdata/pakpak/pakkie"},
+
+	// Package name and path dont match
+	{"pakpak/mainpak.go", "foo_pak.Pubpak", "findcallers/testdata/pakpak/pak"},
+}
+
+func TestPkgPath(t *testing.T) {
+	for _, tt := range pkgpathtests {
+		v := NewFuncVisitor(tt.toFind)
+		fset := token.NewFileSet()
+		filepath := TESTPATH + tt.tstFile
+		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = v.SetPgkPath(filenode, filepath, strings.Split(GOPATH, ";"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		s := v.PkgPath()
+		if s != tt.out {
+			t.Errorf("v.PgkPath(path=%q, toFind=%q) = <%s> want <%s>", filepath, tt.toFind, s, tt.out)
+		}
+	}
 }

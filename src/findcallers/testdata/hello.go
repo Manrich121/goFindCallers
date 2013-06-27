@@ -1,8 +1,8 @@
 package main
 
 import (
+	"findcallers/testdata/foo"
 	"fmt"
-	"foo"
 	"io/ioutil"
 )
 
