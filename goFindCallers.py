@@ -26,7 +26,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		else:
 			# linux and OS X
 			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers'  
-
+			
 		# Check exe build
 		if not os.path.isfile(processPath):
 			buildpath = plugPath+r'\GoFindCallers\src\cmd\goFindCallers'

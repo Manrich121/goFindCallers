@@ -71,8 +71,8 @@ func (v *FuncVisitor) findAndMatch(fun ast.Node, toFind string) bool {
 // ParseDirectory recursively walk through the path and parses each file using parser.ParseFile
 // as well as calls findAndMatch
 // It takes fset, the starting filepath and an ast.Vistor
-func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (first error) {
-	fd, err := os.Open(path)
+func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error) {
+	fd, err := os.Open(p)
 	if err != nil {
 		return err
 	}
@@ -82,16 +82,16 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, path string) (first er
 		return err
 	}
 	for _, f := range fileList {
-		filepath := filepath.Join(path, f.Name())
+		fpath := filepath.Join(p, f.Name())
 		if f.IsDir() {
-			err := v.ParseDirectory(fset, filepath)
+			err := v.ParseDirectory(fset, fpath)
 			if err != nil {
 				return err
 			}
 		} else {
 			// Only parse .go-files
-			if strings.HasSuffix(f.Name(), ".go") {
-				filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+			if filepath.Ext(f.Name()) == ".go" {
+				filenode, err := parser.ParseFile(fset, fpath, nil, 0)
 				if err != nil {
 					return err
 				}
