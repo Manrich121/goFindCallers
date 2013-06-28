@@ -39,6 +39,7 @@ func main() {
 
 	// Check current file to get new search func string
 	visitor.SetFuncString(filenode)
+	visitor.SetPkgPath(filenode, filepath[0], gopath)
 	// walk through first file
 	ast.Walk(visitor, filenode)
 

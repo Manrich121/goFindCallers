@@ -129,7 +129,17 @@ func TestBuildOutput(t *testing.T) {
 	for _, tt := range buildOutputtests {
 		fset := token.NewFileSet()
 		v := NewFuncVisitor(tt.toFind)
-		err := v.ParseDirectory(fset, TESTPATH)
+
+		filepath := TESTPATH + "foo/simple.go"
+		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = v.SetPkgPath(filenode, filepath, strings.Split(GOPATH, ";"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = v.ParseDirectory(fset, TESTPATH)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -106,8 +106,10 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				}
 
 				v.SetFuncString(filenode)
-				//Walk and find function
-				ast.Walk(v, filenode)
+				if v.pkgMatch(filenode, fpath) {
+					//Walk and find function
+					ast.Walk(v, filenode)
+				}
 			}
 		}
 	}
@@ -116,16 +118,18 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 
 func (v *FuncVisitor) pkgMatch(file *ast.File, fpath string) bool {
 
-	for _, i := range file.Imports {
-
-		if v.pkgPath == unquote(i.Path.Value) {
-			return true
+	if strings.Contains(v.toFind, ".") {
+		for _, i := range file.Imports {
+			if v.pkgPath == unquote(i.Path.Value) {
+				return true
+			}
+			if strings.Contains(unquote(i.Path.Value), strings.Replace(filepath.Dir(fpath), "\\", "/", -1)) {
+				return true
+			}
 		}
-		if strings.Contains(unquote(i.Path.Value), strings.Replace(filepath.Dir(fpath), "\\", "/", -1)) {
-			return true
-		}
+		return false
 	}
-	return false
+	return true
 }
 
 func (v *FuncVisitor) SetPkgPath(file *ast.File, fpath string, gopath []string) error {
