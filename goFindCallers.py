@@ -66,7 +66,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			return False
 
 		parsedLines = parsedLocations.split('\n')
-		toAppend = ["Matched " + str(len(parsedLines)/2) + " files for " + wordToFind]
+		toAppend = ["Matched " + unicode(len(parsedLines)/2) + " files for " + wordToFind]
 		i = 0
 		while i<(len(parsedLines)-1):
 			fileLoc = parsedLines[i]
@@ -86,22 +86,23 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 					if not curNum in lines:
 						lines.append(curNum)
 				prevNum = maxNum
+
 			try:
 				self.resultsPane.insert(self.edit, self.resultsPane.size(), '\n'.join(toAppend))
-			except UnicodeDecodeError:
-				print toAppend
+			except:
+				print 'insert + decode'
 				
 			toAppend = ["\n\n" + fileLoc + ":"]
 			# # append Lines
 			lastLine = None
 			for lineNumber in lines:
 				if lastLine and lineNumber > lastLine + 1:
-					toAppend.append(' ' * (5 - len(str(lineNumber)))
-							+ '.' * len(str(lineNumber)))
+					toAppend.append(' ' * (5 - len(unicode(lineNumber)))
+							+ '.' * len(unicode(lineNumber)))
 				lastLine = lineNumber
 
-				lineText = filelines[lineNumber-1].rstrip('\n') #.decode("cp1252", "ignore")
-				toAppend.append(self._format('%s' % (lineNumber),lineText, (str(lineNumber) in regions)))
+				lineText = filelines[lineNumber-1].rstrip('\n').decode("utf-8")
+				toAppend.append(self._format('%s' % (lineNumber),lineText, (unicode(lineNumber) in regions)))
 
 		self.resultsPane.run_command('show_results', {'toAppend': toAppend, 'toHighlight': toFind})
 
@@ -135,10 +136,10 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 
 	def _format(self, lineNumber, line, match = False):
-		spacer = ' ' * (4 - len(str(lineNumber)))
+		spacer = ' ' * (4 - len(unicode(lineNumber)))
 		colon = ':' if match else ' '
 		
-		return ' {sp}{lineNumber}{colon} {text}'.format(lineNumber = lineNumber,
+		return u' {sp}{lineNumber}{colon} {text}'.format(lineNumber = lineNumber,
 				colon = colon, text = line, sp = spacer)
 
 	def getenv(self):
