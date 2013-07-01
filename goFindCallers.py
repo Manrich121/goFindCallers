@@ -14,6 +14,7 @@ from sys import platform as _platform
 class GoFindCallersCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		selections = self.view.sel()
+		self.edit = edit
 		# Startup info stuff, to block cmd window flash
 		startupinfo = subprocess.STARTUPINFO()
 		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -85,9 +86,12 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 					if not curNum in lines:
 						lines.append(curNum)
 				prevNum = maxNum
-
-
-			toAppend.append("\n\n" + fileLoc + ":")
+			try:
+				self.resultsPane.insert(self.edit, self.resultsPane.size(), '\n'.join(toAppend))
+			except UnicodeDecodeError:
+				print toAppend
+				
+			toAppend = ["\n\n" + fileLoc + ":"]
 			# # append Lines
 			lastLine = None
 			for lineNumber in lines:
@@ -96,9 +100,9 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 							+ '.' * len(str(lineNumber)))
 				lastLine = lineNumber
 
-				lineText = filelines[lineNumber-1].rstrip('\n')
+				lineText = filelines[lineNumber-1].rstrip('\n') #.decode("cp1252", "ignore")
 				toAppend.append(self._format('%s' % (lineNumber),lineText, (str(lineNumber) in regions)))
-				
+
 		self.resultsPane.run_command('show_results', {'toAppend': toAppend, 'toHighlight': toFind})
 
 		self.view.window().focus_view(self.resultsPane)
@@ -145,7 +149,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 class ShowResultsCommand(sublime_plugin.TextCommand):
 	def run(self, edit, toAppend, toHighlight):
-		self.view.erase(edit, sublime.Region(0, self.view.size()))
+		# self.view.erase(edit, sublime.Region(0, self.view.size()))
 		self.view.insert(edit, self.view.size(), '\n'.join(toAppend))
 
 		regions = self.view.find_all(toHighlight)
