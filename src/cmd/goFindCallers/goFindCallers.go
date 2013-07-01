@@ -9,6 +9,7 @@ import (
 	"go/token"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -24,22 +25,23 @@ func main() {
 	// Format: funcToFind=filepath
 	find_Path := strings.Split(string(inline), "=")
 	// Split firstfile and gopath variables
-	filepath := strings.Split(find_Path[1], string(os.PathListSeparator))
-	gopath := filepath[1:]
+	fpath := filepath.SplitList(find_Path[1])
+
+	gopath := fpath[1:]
 
 	// visitor used to ast.Walk
 	visitor := findcallers.NewFuncVisitor(find_Path[0])
 
 	// Build the AST by parsing the first file.
 	fset := token.NewFileSet() // positions are relative to fset
-	filenode, err := parser.ParseFile(fset, filepath[0], nil, 0)
+	filenode, err := parser.ParseFile(fset, fpath[0], nil, 0)
 	if err != nil {
 		panic(err)
 	}
 
 	// Check current file to get new search func string
 	visitor.SetFuncString(filenode)
-	visitor.SetPkgPath(filenode, filepath[0], gopath)
+	visitor.SetPkgPath(filenode, fpath[0], gopath)
 	// walk through first file
 	ast.Walk(visitor, filenode)
 
@@ -52,5 +54,5 @@ func main() {
 	}
 
 	//Output on stdout
-	fmt.Print(visitor.BuildOutput(fset))
+	fmt.Println(visitor.BuildOutput(fset))
 }

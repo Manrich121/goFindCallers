@@ -10,7 +10,7 @@ import (
 
 const (
 	TESTPATH = "./testdata/"
-	GOPATH   = "C:\\Go\\gocode\\;C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\GoFindCallers\\"
+	GOPATH   = "C:\\Go\\src\\;C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\GoFindCallers\\"
 )
 
 var setfunctests = []struct {
@@ -67,6 +67,7 @@ var pkgpathtests = []struct {
 	{"hello.go", "fmt.Println", "fmt"},
 	{"hello.go", "foo.B", "findcallers/testdata/foo"},
 	{"hello.go", "ioutil.ReadFile", "io/ioutil"},
+	{"hello.go", "panic", ""},
 
 	// Import rename
 	{"foo/simple.go", "f.Println", "fmt"},

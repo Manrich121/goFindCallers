@@ -104,7 +104,6 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				if err != nil {
 					return err
 				}
-
 				v.SetFuncString(filenode)
 				if v.pkgMatch(filenode, fpath) {
 					//Walk and find function
@@ -139,46 +138,44 @@ func (v *FuncVisitor) SetPkgPath(file *ast.File, fpath string, gopath []string) 
 	}
 	fsplit := strings.SplitAfterN(filepath.Dir(fpath), "\\src\\", 2)
 	fpath = strings.Replace(fsplit[len(fsplit)-1], "\\", "/", -1)
-	if strings.Contains(v.nextFind, ".") {
-		// If exprSel split
-		exprSel := strings.Split(v.nextFind, ".")
-		//Pkg Name match and in scope
-		if strings.EqualFold(file.Name.Name, exprSel[0]) && file.Scope.Objects[exprSel[1]] != nil {
+	if !strings.Contains(v.nextFind, ".") {
+		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 			v.pkgPath = fpath
+		}
+		return nil
+	}
+	// If exprSel split
+	exprSel := strings.Split(v.nextFind, ".")
+	//Pkg Name match and in scope
+	if strings.EqualFold(file.Name.Name, exprSel[0]) && file.Scope.Objects[exprSel[1]] != nil {
+		v.pkgPath = fpath
+		return nil
+	}
+
+	for i := range file.Imports {
+		curImport := file.Imports[i]
+		_, selc := filepath.Split(unquote(curImport.Path.Value))
+		// Import name match OR selector match
+		if curImport.Name != nil && (curImport.Name.String() == exprSel[0]) || exprSel[0] == selc {
+			v.pkgPath = unquote(curImport.Path.Value)
 			return nil
-		} else {
-			for i := range file.Imports {
-				curImport := file.Imports[i]
-				_, selc := filepath.Split(unquote(curImport.Path.Value))
-				// Import name match OR selector match
-				if curImport.Name != nil && (curImport.Name.String() == exprSel[0]) || exprSel[0] == selc {
-					v.pkgPath = unquote(curImport.Path.Value)
-					return nil
-				} else {
-					for _, p := range gopath {
-						curPath := filepath.Clean(p + "\\src\\" + unquote(curImport.Path.Value))
-						_, err := os.Stat(curPath)
-						if !os.IsNotExist(err) {
-							fset := token.NewFileSet()
-							pkgs, err := parser.ParseDir(fset, curPath, isFile, parser.PackageClauseOnly)
-							if err != nil {
-								return err
-							}
-							for _, i := range pkgs {
-								if i.Name == exprSel[0] {
-									v.pkgPath = unquote(curImport.Path.Value)
-									return nil
-								}
-							}
-						}
+		}
+		for _, p := range gopath {
+			curPath := filepath.Clean(p + "\\src\\" + unquote(curImport.Path.Value))
+			_, err := os.Stat(curPath)
+			if !os.IsNotExist(err) {
+				fset := token.NewFileSet()
+				pkgs, err := parser.ParseDir(fset, curPath, isFile, parser.PackageClauseOnly)
+				if err != nil {
+					return err
+				}
+				for _, pkg := range pkgs {
+					if pkg.Name == exprSel[0] {
+						v.pkgPath = unquote(curImport.Path.Value)
+						return nil
 					}
 				}
 			}
-		}
-	} else {
-		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
-			v.pkgPath = fpath
-			return nil
 		}
 	}
 	return nil
@@ -214,7 +211,8 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) {
 			v.toFind = exprSel[1]
 			return
 		}
-	} else {
+	}
+	if isTitle(v.nextFind) {
 		// If the current file is a non-main package and the toFind string its function
 		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 			v.toFind = v.nextFind
@@ -249,6 +247,7 @@ func (v *FuncVisitor) BuildOutput(fset *token.FileSet) string {
 		// return flag NotFound to indicate that the function was not found
 		return "NotFound"
 	}
+
 }
 
 func unquote(s string) string {
@@ -257,4 +256,9 @@ func unquote(s string) string {
 
 func isFile(f os.FileInfo) bool {
 	return !f.IsDir()
+}
+
+func isTitle(s string) bool {
+	ss := strings.Title(s)
+	return s == ss
 }

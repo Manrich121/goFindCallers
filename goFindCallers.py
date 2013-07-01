@@ -98,7 +98,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 				lineText = filelines[lineNumber-1].rstrip('\n')
 				toAppend.append(self._format('%s' % (lineNumber),lineText, (str(lineNumber) in regions)))
-
+				
 		self.resultsPane.run_command('show_results', {'toAppend': toAppend, 'toHighlight': toFind})
 
 		self.view.window().focus_view(self.resultsPane)
