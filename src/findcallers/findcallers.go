@@ -195,8 +195,13 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) {
 				// If import rename == Expr import name
 				_, selc := filepath.Split(unquote(curImport.Path.Value))
 				if strings.EqualFold(exprSel[0], selc) {
+					if curImport.Name.String() == "." {
+						v.toFind = exprSel[1]
+						return
+					}
 					v.toFind = curImport.Name.String() + "." + exprSel[1]
 					return
+
 				} else {
 					// If original import name == Expr
 					if strings.EqualFold(exprSel[0], curImport.Name.String()) {

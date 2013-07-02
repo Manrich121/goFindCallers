@@ -53,6 +53,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		toFind = re.escape(wordToFind)
 		self.count = 0
 		uout = (wordToFind+"="+ self.view.file_name()+os.pathsep+self.gopath).encode("utf-8")
+		print uout
 		parsedLocations, err = self.p.communicate(uout)
 		if err != None:
 			print err
