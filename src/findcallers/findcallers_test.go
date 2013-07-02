@@ -119,6 +119,8 @@ var buildOutputtests = []struct {
 		"28\n" +
 		"testdata\\hello.go\n" +
 		"18\n"},
+	{"Bla", "testdata\\foo\\dot.go\n" +
+		"8\n"},
 	{"foo.B", "testdata\\foo\\simple.go\n" +
 		"30\n" +
 		"testdata\\hello.go\n" +
