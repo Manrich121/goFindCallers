@@ -1,6 +1,6 @@
 # GoFindCallers
 
-[Sublime Text 2][subl] plug-in that adds functionality to find all callers of selected [Golang][go] function.
+[Sublime Text 2][subl] plug-in that adds IDE functionality to find all callers of selected [Golang][go] function.
 
 [subl]: http://www.sublimetext.com/2
 [go]: http://golang.org/
