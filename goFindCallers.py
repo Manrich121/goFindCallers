@@ -51,8 +51,9 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 	def _doFind(self, wordToFind):
 		toFind = re.escape(wordToFind)
-
-		parsedLocations, err = self.p.communicate(wordToFind+"="+ self.view.file_name()+os.pathsep+self.gopath)
+		self.count = 0
+		uout = (wordToFind+"="+ self.view.file_name()+os.pathsep+self.gopath).encode("utf-8")
+		parsedLocations, err = self.p.communicate(uout)
 		if err != None:
 			print err
 			
@@ -66,11 +67,13 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			return False
 
 		parsedLines = parsedLocations.split('\n')
-		toAppend = ["Matched " + unicode(len(parsedLines)/2) + " files for " + wordToFind]
+		self.numFiles = len(parsedLines)/2
+		toAppend = ["Matched " + unicode(self.numFiles) + " files for " + wordToFind]
 		i = 0
 		while i<(len(parsedLines)-1):
 			fileLoc = parsedLines[i]
 			regions = parsedLines[i+1].split(',')
+			self.count += len(regions)
 			i = i + 2 
 			filelines = linecache.getlines(fileLoc)
 			linecount = len(filelines)
@@ -104,6 +107,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				lineText = filelines[lineNumber-1].rstrip('\n').decode("utf-8")
 				toAppend.append(self._format('%s' % (lineNumber),lineText, (unicode(lineNumber) in regions)))
 
+		toAppend.append("\n"+ unicode(self.count) + " matches across " + unicode(self.numFiles) + " file(s)")
 		self.resultsPane.run_command('show_results', {'toAppend': toAppend, 'toHighlight': toFind})
 
 		self.view.window().focus_view(self.resultsPane)

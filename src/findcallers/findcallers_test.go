@@ -28,7 +28,7 @@ var setfunctests = []struct {
 	{"foo/simple.go", "f.Println", "f.Println", "fmt.Println"},
 	{"foo/simple.go", "fmt.Println", "f.Println", "fmt.Println"},
 	{"foo/simple.go", "Bla", "Bla", "foo.Bla"},
-	{"foo/simple.go", "a", "a", "foo.a"},
+	{"foo/simple.go", "a", "a", "a"},
 	{"foo/simple.go", "foo.B", "B", "foo.B"},
 	{"foo/simple.go", "io.ReadFile", "io.ReadFile", "ioutil.ReadFile"},
 
@@ -108,7 +108,9 @@ var buildOutputtests = []struct {
 	out    string
 }{
 	{"a", "testdata\\foo\\simple.go\n" +
-		"25\n"},
+		"25\n" +
+		"testdata\\hello.go\n" +
+		"14\n"},
 	{"fmt.Println", "testdata\\foo\\simple.go\n" +
 		"9,25\n" +
 		"testdata\\hello.go\n" +

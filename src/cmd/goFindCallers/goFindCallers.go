@@ -13,6 +13,10 @@ import (
 	"strings"
 )
 
+func 界() {
+	return
+}
+
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 
@@ -55,4 +59,5 @@ func main() {
 
 	//Output on stdout
 	fmt.Println(visitor.BuildOutput(fset))
+	界()
 }
