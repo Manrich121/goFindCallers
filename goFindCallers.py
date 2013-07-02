@@ -34,13 +34,10 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				pass
 			# subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
 
-			subprocess.Popen(['go', 'build', '-o', processPath],
+			subprocess.call(['go', 'build', '-o', processPath],
 							env={'GOPATH': str(os.path.join(plugPath, "GoFindCallers"))}, 
 							cwd=buildpath, 
-							startupinfo=startupinfo,
-							stdout=subprocess.PIPE, 
-							stderr=subprocess.PIPE, 
-							stdin=subprocess.PIPE).wait()
+							startupinfo=startupinfo)
 			
 		# Get gopath and format for stdin
 		self.gopath = self.getenv()
@@ -161,8 +158,8 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 	def getenv(self):
 		e = os.environ.copy()
-		roots = e.get('GOPATH', '')
-		return roots
+		gpaths = e.get('GOPATH', '')
+		return gpaths
 
 
 class ShowResultsCommand(sublime_plugin.TextCommand):
