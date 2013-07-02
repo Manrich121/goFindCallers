@@ -1,27 +1,23 @@
-from collections import defaultdict
-import os
 import re
+import os
 
 import sublime
 import sublime_plugin
-import os
-import sys
 import subprocess
 import linecache
-from threading import Thread
 from sys import platform as _platform
 
 class GoFindCallersCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		selections = self.view.sel()
-		self.edit = edit
-		# Startup info stuff, to block cmd window flash
-		startupinfo = subprocess.STARTUPINFO()
-		startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-		plugPath = sublime.packages_path()
-		
+		self.edit = edit	
+		startupinfo = None
 		# Check OS and build the executable path
 		if _platform == "win32":
+			# Startup info stuff, to block cmd window flash
+			startupinfo = subprocess.STARTUPINFO()
+			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+			plugPath = sublime.packages_path()
 			# Windows
 			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers.exe'
 		else:
