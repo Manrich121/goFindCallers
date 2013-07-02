@@ -12,12 +12,12 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		selections = self.view.sel()
 		self.edit = edit	
 		startupinfo = None
+		plugPath = sublime.packages_path()
 		# Check OS and build the executable path
 		if _platform == "win32":
 			# Startup info stuff, to block cmd window flash
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-			plugPath = sublime.packages_path()
 			# Windows
 			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers.exe'
 		else:
