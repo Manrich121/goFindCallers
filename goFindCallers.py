@@ -19,21 +19,37 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			# Windows
-			processPath = plugPath +r'\GoFindCallers\bin\goFindCallers.exe'
-			buildpath = plugPath + r'\GoFindCallers\src\cmd\goFindCallers'
+			processPath = os.path.join(plugPath, "GoFindCallers","bin","goFindCallers.exe")	
 		else:
 			# linux and OS X
-			processPath = os.path.join(plugPath, "/GoFindCallers/bin/goFindCallers")	
-			buildpath = os.path.join(plugPath, "/GoFindCallers/src/cmd/goFindCallers")		
+			processPath = os.path.join(plugPath, "GoFindCallers","bin","goFindCallers")	
+
+		buildpath = os.path.join(plugPath, "GoFindCallers","src","cmd","goFindCallers")		
 		# Check exe build
 		if not os.path.isfile(processPath):
 			sublime.status_message('Installing plugin dependencies...')
-			subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
+			try:
+				os.makedirs(os.path.dirname(processPath))
+			except:
+				pass
+			# subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
 
+			subprocess.Popen(['go', 'build', '-o', processPath],
+							env={'GOPATH': str(os.path.join(plugPath, "GoFindCallers"))}, 
+							cwd=buildpath, 
+							startupinfo=startupinfo,
+							stdout=subprocess.PIPE, 
+							stderr=subprocess.PIPE, 
+							stdin=subprocess.PIPE).wait()
+			
 		# Get gopath and format for stdin
 		self.gopath = self.getenv()
 		# Open subprocess
-		self.p = subprocess.Popen([processPath], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+		self.p = subprocess.Popen([processPath], 
+								startupinfo=startupinfo, 
+								stdout=subprocess.PIPE, 
+								stderr=subprocess.PIPE, 
+								stdin=subprocess.PIPE)
 
 		self._callbackWithWordToFind(self._doFind)
 
