@@ -19,14 +19,14 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			startupinfo = subprocess.STARTUPINFO()
 			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			# Windows
-			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers.exe'
+			processPath = plugPath +r'\GoFindCallers\bin\goFindCallers.exe'
+			buildpath = plugPath + r'\GoFindCallers\src\cmd\goFindCallers'
 		else:
 			# linux and OS X
-			processPath = plugPath+r'\GoFindCallers\bin\goFindCallers'  
-			
+			processPath = os.path.join(plugPath, "/GoFindCallers/bin/goFindCallers")	
+			buildpath = os.path.join(plugPath, "/GoFindCallers/src/cmd/goFindCallers")		
 		# Check exe build
 		if not os.path.isfile(processPath):
-			buildpath = plugPath+r'\GoFindCallers\src\cmd\goFindCallers'
 			sublime.status_message('Installing plugin dependencies...')
 			subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
 
