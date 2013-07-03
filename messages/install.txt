@@ -1,6 +1,6 @@
 Sublime Text 2 plug-in for Golang, that adds IDE functionality to find all callers of selected go function.
 
-*Important this plugin uses the GOPATH.
+*Important this plugin uses the GOPATH, please set it in Settings - User.
 
 To Use
 -------

@@ -18,6 +18,8 @@ Functionality includes:
 
 [pkg-ctrl]: http://wbond.net/sublime_packages/package_control
 
+*Important this plugin uses the `GOPATH`, please set it in `Settings - User`.
+
 ## Usage
 
 The `GoFind Callers` command is accessible via the Command Palette, `Ctrl + Shift + P` on Windows/Linux, `Command + Shift + P` on OS X.
