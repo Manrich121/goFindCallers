@@ -13,6 +13,11 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		self.edit = edit	
 		self.startupinfo = None
 		plugPath = sublime.packages_path()
+		# Get gopath and format for stdin
+		self.getenv()
+		self.gopath = self._env.get('GOPATH','')
+		self.gobin = self._env.get('GOBIN','')
+
 		# Check OS and build the executable path
 		if _platform == "win32":
 			# Startup info stuff, to block cmd window flash
@@ -33,14 +38,15 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			except:
 				pass
 			# subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
+			gocmd = os.path.join(self.gobin, 'go')
 
-			subprocess.call(['go', 'build', '-o', processPath],
+			subprocess.call([gocmd, 'build', '-o', processPath],
 							env={'GOPATH': str(os.path.join(plugPath, "GoFindCallers"))}, 
 							cwd=buildpath, 
 							startupinfo=self.startupinfo)
 			
-		# Get gopath and format for stdin
-		self.gopath = self.getenv()
+		
+
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], 
 								startupinfo=self.startupinfo, 
@@ -157,15 +163,17 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				colon = colon, text = line, sp = spacer)
 
 	def getenv(self):
-		_env_ext = {}
+		_env = {}
 		vars = [
-		'PATH',
-		'GOBIN',
 		'GOPATH',
 		'GOROOT',
 		]
 
-		p = subprocess.Popen(['echo', '\"[[[$GOPATH]]GOPATH[[%GOPATH%]]]\"'],
+		cmdl = []
+		for k in vars:
+			cmdl.append('[[[$'+k+']]'+k+'[[%'+k+'%]]]')
+		cmd_str = ' '.join(cmdl)
+		p = subprocess.Popen(['echo', cmd_str],
 								startupinfo=self.startupinfo, 
 								stdout=subprocess.PIPE, 
 								stderr=subprocess.PIPE, 
@@ -174,7 +182,6 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		out, err = p.communicate()
 		if err:
 			print "Popen Error:" + err
-		print out
 
 		mats = re.findall(r'\[\[\[(.*?)\]\](%s)\[\[(.*?)\]\]\]' % '|'.join(vars), out)
 		for m in mats:
@@ -186,9 +193,11 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				v = b
 
 			if v:
-				_env_ext[k] = v
+				_env[k] = v
 
-		return _env_ext.get('GOPATH', '')
+		_env['GOBIN'] = os.path.join(_env.get('GOROOT',''),'bin')
+
+		self._env = _env
 		
 
 
