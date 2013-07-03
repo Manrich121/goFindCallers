@@ -1,8 +1,8 @@
 // While you can edit this file, it's best to put your changes in
 // "User/goFindCallers.sublime-settings", which overrides the settings in here.
 {
-	// Set the specific environment variables here (';' separated)
-	// e.g GOPATH": "usr/go/gocode/src/example/;usr/tmp/gosrc/src/"
+	// Set the specific environment variables here (Please use os spesific separator, ';' for Win and ':' for OSX and Linux)
+	// e.g GOPATH": "usr/go/gocode/src/example/:usr/tmp/gosrc/src/"
 	// or GOPATH": "C:/go/gocode/src/example/;usr/tmp/gosrc/src/"
 	"GOPATH": "",
 
