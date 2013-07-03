@@ -16,11 +16,18 @@
 											"children":
 											[
 													{
-															"command": "open_file", "args":
-															{
-																	"file": "${packages}/goFindCallers/goFindCallers.sublime-settings"
-															},
-															"caption": "Settings – Default"
+														"caption": "Settings – Default",
+														"command": "open_file",
+														"args": {
+															"file": "${packages}/goFindCallers/goFindCallers.sublime-settings"
+														}
+													},
+													{
+														"caption": "Settings – User",
+														"command": "open_file",
+														"args": {
+															"file": "${packages}/User/goFindCallers.sublime-settings"
+														}
 													},
 													{ "caption": "-" },
 													{

@@ -1,8 +1,11 @@
 {
-	// you may set specific environment variables here
-	// e.g "env": { "PATH": "$HOME/go/bin:$PATH" }
-	// in values, $PATH and ${PATH} are replaced with
-	// the corresponding environment(PATH) variable, if it exists.
+	// Set the specific environment variables here
+	// e.g "gopath": { "GOPATH": "usr/go/gocode/src/example/" }
+	// e.g "gopath": { "GOPATH": "C:/go/gocode/src/example/" }
 	"gopath": {},
 
+	// Set the path to where the go binary is installed
+	// e.g "gobin": { "GOBIN": "usr/go/bin/" }
+	// e.g "gobin": { "GOBIN": "C:/go/bin" }
+	"gobin": {},
 }
