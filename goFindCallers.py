@@ -15,7 +15,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		plugPath = sublime.packages_path()
 		# Get gopath and format for stdin
 		self.getenv()
-		self.gopath = self._env.get('GOPATH','')
+		self.gopath = self._env.get('GOPATH')
 		self.gobin = self._env.get('GOBIN','')
 
 		# Check OS and build the executable path
@@ -151,7 +151,6 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		window.focus_view(self.view)
 		return v
 
-
 	def _format(self, lineNumber, line, match = False):
 		spacer = ' ' * (4 - len(unicode(lineNumber)))
 		colon = ':' if match else ' '
@@ -160,6 +159,8 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				colon = colon, text = line, sp = spacer)
 
 	def getenv(self):
+		binflag = False
+		s = sublime.load_settings("goFindCallers.sublime-settings")
 		_env = {}
 		vars = [
 		'GOPATH',
@@ -192,7 +193,18 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			if v:
 				_env[k] = v
 
-		_env['GOBIN'] = os.path.join(_env.get('GOROOT',''),'bin')
+		if s.get('GOPATH') != "":
+			_env['GOPATH'] =  os.pathsep.join(s.get('GOPATH').split(';')) + os.pathsep + _env.get('GOPATH')
+
+		if s.get('GOBIN') != "":
+			bpath = s.get('GOBIN').split(';')
+			for b in bpath:
+				if os.path.exists(b):
+					_env['GOBIN'] = b
+					binflag = True
+					break
+		if not binflag:
+			print "goFindCallers: GOBIN could not be set!" 
 
 		self._env = _env
 		
@@ -204,9 +216,8 @@ class ShowResultsCommand(sublime_plugin.TextCommand):
 		regions = self.view.find_all(toHighlight)
 		self.view.add_regions('find_results', regions, 'found', '', sublime.DRAW_OUTLINED)
 
-
 # FindInFiles edited to handle double clicking and cntr+enter shortcuts
-class FindInFilesGotoCommand(sublime_plugin.TextCommand):
+class GoFindCallersGotoCommand(sublime_plugin.TextCommand):
     def run_(self, args):
         view = self.view
         if view.name() == "Find Results":
