@@ -1,0 +1,9 @@
+goFindCallers v1.0.0 Changelog:
+
+Features:
+- 	Find function calls for selector expressions, package function declarations 
+	and support import dot rename.
+
+- 	Added a setting to set GOPATH in Settings - User. (Required for OSX and Linux platforms) 
+
+-	If an error occurs, please review the Sublime console: ctrl + `

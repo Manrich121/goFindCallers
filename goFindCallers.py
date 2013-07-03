@@ -32,7 +32,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 		buildpath = os.path.join(plugPath, "GoFindCallers","src","cmd","goFindCallers")		
 		# Check exe build
 		if not os.path.isfile(processPath):
-			sublime.status_message('Installing plugin dependencies...')
+			sublime.status_message('Installing goFindCallers dependencies...')
 			try:
 				os.makedirs(os.path.dirname(processPath))
 			except:
@@ -204,7 +204,8 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 					binflag = True
 					break
 		if not binflag:
-			print "goFindCallers: GOBIN could not be set!" 
+			print "goFindCallers: GOBIN could not be set!"
+			sublime.status_message("goFindCallers: GOBIN could not be set!")
 
 		self._env = _env
 		
