@@ -37,16 +37,13 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				os.makedirs(os.path.dirname(processPath))
 			except:
 				pass
-			# subprocess.Popen(["go", "install"], cwd=buildpath, startupinfo=startupinfo).wait()
 			gocmd = os.path.join(self.gobin, 'go')
 
 			subprocess.call([gocmd, 'build', '-o', processPath],
 							env={'GOPATH': str(os.path.join(plugPath, "GoFindCallers"))}, 
 							cwd=buildpath, 
 							startupinfo=self.startupinfo)
-			
-		
-
+	
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], 
 								startupinfo=self.startupinfo, 
@@ -199,9 +196,6 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 
 		self._env = _env
 		
-
-
-
 class ShowResultsCommand(sublime_plugin.TextCommand):
 	def run(self, edit, toAppend, toHighlight):
 		# self.view.erase(edit, sublime.Region(0, self.view.size()))
