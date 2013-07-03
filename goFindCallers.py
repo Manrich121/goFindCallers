@@ -11,13 +11,13 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 	def run(self, edit):
 		selections = self.view.sel()
 		self.edit = edit	
-		startupinfo = None
+		self.startupinfo = None
 		plugPath = sublime.packages_path()
 		# Check OS and build the executable path
 		if _platform == "win32":
 			# Startup info stuff, to block cmd window flash
-			startupinfo = subprocess.STARTUPINFO()
-			startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+			self.startupinfo = subprocess.STARTUPINFO()
+			self.startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 			# Windows
 			processPath = os.path.join(plugPath, "GoFindCallers","bin","goFindCallers.exe")	
 		else:
@@ -37,13 +37,13 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			subprocess.call(['go', 'build', '-o', processPath],
 							env={'GOPATH': str(os.path.join(plugPath, "GoFindCallers"))}, 
 							cwd=buildpath, 
-							startupinfo=startupinfo)
+							startupinfo=self.startupinfo)
 			
 		# Get gopath and format for stdin
 		self.gopath = self.getenv()
 		# Open subprocess
 		self.p = subprocess.Popen([processPath], 
-								startupinfo=startupinfo, 
+								startupinfo=self.startupinfo, 
 								stdout=subprocess.PIPE, 
 								stderr=subprocess.PIPE, 
 								stdin=subprocess.PIPE)
@@ -157,9 +157,40 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 				colon = colon, text = line, sp = spacer)
 
 	def getenv(self):
-		e = os.environ.copy()
-		gpaths = e.get('GOPATH', '')
-		return gpaths
+		_env_ext = {}
+		vars = [
+		'PATH',
+		'GOBIN',
+		'GOPATH',
+		'GOROOT',
+		]
+
+		p = subprocess.Popen(['echo', '\"[[[$GOPATH]]GOPATH[[%GOPATH%]]]\"'],
+								startupinfo=self.startupinfo, 
+								stdout=subprocess.PIPE, 
+								stderr=subprocess.PIPE, 
+								stdin=subprocess.PIPE, 
+								shell=True)
+		out, err = p.communicate()
+		if err:
+			print "Popen Error:" + err
+		print out
+
+		mats = re.findall(r'\[\[\[(.*?)\]\](%s)\[\[(.*?)\]\]\]' % '|'.join(vars), out)
+		for m in mats:
+			a, k, b = m
+			v = ''
+			if a != '$'+k:
+				v = a
+			elif b != '%'+k+'%':
+				v = b
+
+			if v:
+				_env_ext[k] = v
+
+		return _env_ext.get('GOPATH', '')
+		
+
 
 
 class ShowResultsCommand(sublime_plugin.TextCommand):
