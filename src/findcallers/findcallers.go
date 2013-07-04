@@ -137,8 +137,10 @@ func (v *FuncVisitor) SetPkgPath(file *ast.File, fpath string, gopath []string) 
 	if err != nil {
 		return err
 	}
-	fsplit := strings.SplitAfterN(filepath.Dir(fpath), "\\src\\", 2)
-	fpath = strings.Replace(fsplit[len(fsplit)-1], "\\", "/", -1)
+	fpath = strings.Replace(filepath.Dir(fpath), "\\", "/", -1)
+	fsplit := strings.SplitAfterN(fpath, "/src/", 2)
+	fpath = fsplit[len(fsplit)-1]
+
 	if !strings.Contains(v.nextFind, ".") {
 		if file.Scope.Objects[v.nextFind] != nil && !strings.EqualFold(file.Name.Name, "main") {
 			v.pkgPath = fpath
