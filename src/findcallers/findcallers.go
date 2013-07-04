@@ -116,8 +116,8 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 	return nil
 }
 
+// Checks the current package path against the initial pgkPath
 func (v *FuncVisitor) pkgMatch(file *ast.File, fpath string) bool {
-
 	if strings.Contains(v.toFind, ".") {
 		for _, i := range file.Imports {
 			if v.pkgPath == unquote(i.Path.Value) {
@@ -129,7 +129,10 @@ func (v *FuncVisitor) pkgMatch(file *ast.File, fpath string) bool {
 		}
 		return false
 	}
-	return true
+	if strings.Contains(strings.Replace(filepath.Dir(fpath), "\\", "/", -1), v.pkgPath) {
+		return true
+	}
+	return false
 }
 
 func (v *FuncVisitor) SetPkgPath(file *ast.File, fpath string, gopath []string) error {
@@ -198,7 +201,7 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) {
 				// If import rename == Expr import name
 				_, selc := filepath.Split(unquote(curImport.Path.Value))
 				if strings.EqualFold(exprSel[0], selc) {
-					if curImport.Name.String() == "." && v.pkgPath == unquote(curImport.Path.Value) {
+					if curImport.Name.String() == "." {
 						v.toFind = exprSel[1]
 						return
 					}
@@ -255,7 +258,6 @@ func (v *FuncVisitor) BuildOutput(fset *token.FileSet) string {
 		// return flag NotFound to indicate that the function was not found
 		return "NotFound"
 	}
-
 }
 
 func unquote(s string) string {
