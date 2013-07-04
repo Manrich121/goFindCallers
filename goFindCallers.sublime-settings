@@ -2,13 +2,13 @@
 // "User/goFindCallers.sublime-settings", which overrides the settings in here.
 {
 	// Set the specific environment variables here (Comma separated list of paths)
-	// e.g GOPATH": ["usr/go/gocode/src/example/", "usr/tmp/gosrc/src/"]
-	// or GOPATH": ["C:/go/gocode/src/example/", "usr/tmp/gosrc/src/"]
+	// e.g GOPATH": ["/usr/go/gocode/src/example/", "/usr/tmp/gosrc/src/"]
+	// or GOPATH": ["C:/go/gocode/src/example/", "/usr/tmp/gosrc/src/"]
 	"GOPATH": [],
 
 	// Set the path to where the go binary is installed (Comma separated list of paths)
 	// All paths are checked, a Error will be displayed if the binary is not found
-	// e.g "GOBIN": ["usr/go/bin/"]
+	// e.g "GOBIN": ["/usr/go/bin/"]
 	// or "GOBIN": ["C:/Go/bin/"]
 	"GOBIN": ["C:/Go/bin", "~/bin", "~/go/bin", "/usr/local/go/bin", "/usr/local/opt/go/bin,", "/usr/local/bin", "/usr/bin"]
 }
