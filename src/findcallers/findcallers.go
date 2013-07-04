@@ -91,7 +91,10 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 		return err
 	}
 	for _, f := range fileList {
-		fpath := filepath.Join(p, f.Name())
+		fpath, err := filepath.Abs(filepath.Join(p, f.Name()))
+		if err != nil {
+			return err
+		}
 		if f.IsDir() {
 			err := v.ParseDirectory(fset, fpath)
 			if err != nil {
@@ -104,6 +107,7 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				if err != nil {
 					return err
 				}
+
 				v.SetFuncString(filenode)
 				if v.pkgMatch(filenode, fpath) {
 

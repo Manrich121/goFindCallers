@@ -10,7 +10,7 @@ import (
 
 const (
 	TESTPATH = "./testdata/"
-	GOPATH   = "C:\\Go\\src\\;C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\GoFindCallers\\"
+	GOPATH   = "C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\goFindCallers\\"
 )
 
 var setfunctests = []struct {
@@ -107,23 +107,21 @@ var buildOutputtests = []struct {
 	toFind string
 	out    string
 }{
-	{"a", "testdata\\foo\\simple.go\n" +
-		"25\n" +
-		"testdata\\hello.go\n" +
-		"14\n"},
-	{"fmt.Println", "testdata\\foo\\simple.go\n" +
+	{"a", GOPATH + "src\\findcallers\\testdata\\foo\\simple.go\n" +
+		"25\n"},
+	{"fmt.Println", GOPATH + "src\\findcallers\\testdata\\foo\\simple.go\n" +
 		"9,25\n" +
-		"testdata\\hello.go\n" +
+		GOPATH + "src\\findcallers\\testdata\\hello.go\n" +
 		"15\n"},
-	{"panic", "testdata\\foo\\simple.go\n" +
+	{"panic", GOPATH + "src\\findcallers\\testdata\\foo\\simple.go\n" +
 		"28\n" +
-		"testdata\\hello.go\n" +
+		GOPATH + "src\\findcallers\\testdata\\hello.go\n" +
 		"18\n"},
-	{"Bla", "testdata\\foo\\dot.go\n" +
+	{"Bla", GOPATH + "src\\findcallers\\testdata\\foo\\dot.go\n" +
 		"12\n"},
-	{"foo.B", "testdata\\foo\\simple.go\n" +
+	{"foo.B", GOPATH + "src\\findcallers\\testdata\\foo\\simple.go\n" +
 		"30\n" +
-		"testdata\\hello.go\n" +
+		GOPATH + "src\\findcallers\\testdata\\hello.go\n" +
 		"20\n"},
 	{"foo", "NotFound"},
 }
@@ -140,6 +138,7 @@ func TestBuildOutput(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		v.SetFuncString(filenode)
 		err = v.SetPkgPath(filenode, filepath, strings.Split(GOPATH, ";"))
 		if err != nil {
 			t.Fatal(err)
