@@ -104,8 +104,9 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				if err != nil {
 					return err
 				}
-				v.SetFuncString(filenode)
+
 				if v.pkgMatch(filenode, fpath) {
+					v.SetFuncString(filenode)
 					//Walk and find function
 					ast.Walk(v, filenode)
 				}
