@@ -193,11 +193,14 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			if v:
 				_env[k] = v
 
-		if s.get('GOPATH') != "":
+		if not s.get('GOPATH'):
+			print s.get('GOPATH')
+
+		if s.get('GOPATH'):
 			_env['GOPATH'] =  s.get('GOPATH')
 
-		if s.get('GOBIN') != "":
-			bpath = s.get('GOBIN').split(';')
+		if s.get('GOBIN'):
+			bpath = s.get('GOBIN')
 			for b in bpath:
 				if os.path.exists(b):
 					_env['GOBIN'] = b
