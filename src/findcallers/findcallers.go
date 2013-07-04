@@ -104,9 +104,9 @@ func (v *FuncVisitor) ParseDirectory(fset *token.FileSet, p string) (first error
 				if err != nil {
 					return err
 				}
-
+				v.SetFuncString(filenode)
 				if v.pkgMatch(filenode, fpath) {
-					v.SetFuncString(filenode)
+
 					//Walk and find function
 					ast.Walk(v, filenode)
 				}
@@ -198,7 +198,7 @@ func (v *FuncVisitor) SetFuncString(file *ast.File) {
 				// If import rename == Expr import name
 				_, selc := filepath.Split(unquote(curImport.Path.Value))
 				if strings.EqualFold(exprSel[0], selc) {
-					if curImport.Name.String() == "." {
+					if curImport.Name.String() == "." && v.pkgPath == unquote(curImport.Path.Value) {
 						v.toFind = exprSel[1]
 						return
 					}
