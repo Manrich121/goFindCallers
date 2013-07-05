@@ -200,7 +200,7 @@ class GoFindCallersCommand(sublime_plugin.TextCommand):
 			bpath = s.get('GOBIN')
 			for b in bpath:
 				if os.path.exists(b):
-					_env['GOBIN'] = b
+					_env['GOBIN'] = os.path.normcase(b)
 					binflag = True
 					break
 		if not binflag:

@@ -4,13 +4,14 @@ import (
 	. "findcallers"
 	"go/parser"
 	"go/token"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
 const (
 	TESTPATH = "./testdata/"
-	GOPATH   = "C:\\Users\\Manrich\\AppData\\Roaming\\Sublime Text 2\\Packages\\goFindCallers\\"
+	GOPATH   = "../../"
 )
 
 var setfunctests = []struct {
@@ -38,11 +39,15 @@ var setfunctests = []struct {
 
 // Verifies SetFuncString called on a findcallers.FuncVisitor
 func TestSetFuncString(t *testing.T) {
+	testpath, err := filepath.Abs(TESTPATH)
+	if err != nil {
+		t.Fatal(err)
+	}
 	fset := token.NewFileSet()
 	for _, tt := range setfunctests {
 		v := NewFuncVisitor(tt.toFind)
-		filepath := TESTPATH + tt.tstFile
-		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+		fpath := filepath.Join(testpath, tt.tstFile)
+		filenode, err := parser.ParseFile(fset, fpath, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -84,21 +89,25 @@ var pkgpathtests = []struct {
 }
 
 func TestPkgPath(t *testing.T) {
+	gopath, err := filepath.Abs(GOPATH)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, tt := range pkgpathtests {
 		v := NewFuncVisitor(tt.toFind)
 		fset := token.NewFileSet()
-		filepath := TESTPATH + tt.tstFile
-		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+		fpath := TESTPATH + tt.tstFile
+		filenode, err := parser.ParseFile(fset, fpath, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = v.SetPkgPath(filenode, filepath, strings.Split(GOPATH, ";"))
+		err = v.SetPkgPath(filenode, fpath, strings.Split(gopath, ";"))
 		if err != nil {
 			t.Fatal(err)
 		}
 		s := v.PkgPath()
 		if s != tt.out {
-			t.Errorf("v.PgkPath(path=%q, toFind=%q) = <%s> want <%s>", filepath, tt.toFind, s, tt.out)
+			t.Errorf("v.PgkPath(path=%q, toFind=%q) = <%s> want <%s>", fpath, tt.toFind, s, tt.out)
 		}
 	}
 }
@@ -128,18 +137,21 @@ var buildOutputtests = []struct {
 
 // Test the output string generated after parsing the TESTPATH
 func TestBuildOutput(t *testing.T) {
-
+	gopath, err := filepath.Abs(GOPATH)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, tt := range buildOutputtests {
 		fset := token.NewFileSet()
 		v := NewFuncVisitor(tt.toFind)
 
-		filepath := TESTPATH + "foo/simple.go"
-		filenode, err := parser.ParseFile(fset, filepath, nil, 0)
+		fpath := TESTPATH + "foo/simple.go"
+		filenode, err := parser.ParseFile(fset, fpath, nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}
 		v.SetFuncString(filenode)
-		err = v.SetPkgPath(filenode, filepath, strings.Split(GOPATH, ";"))
+		err = v.SetPkgPath(filenode, fpath, strings.Split(gopath, ";"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -147,7 +159,7 @@ func TestBuildOutput(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		s := v.BuildOutput(fset)
+		s := strings.Replace(v.BuildOutput(fset), gopath+"\\", GOPATH, -1)
 		if s != tt.out {
 			t.Errorf("v.BuildOutput(path=%q, toFind=%q) = <%s> want <%s>", TESTPATH, tt.toFind, s, tt.out)
 		}
